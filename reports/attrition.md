@@ -433,7 +433,7 @@ for (i in 1:1000) {
   s <- sum(agg$N)
   agg[, prop := N / sum(N)]
   agg[, followups := apply(.SD, 1, sum), .SDcols = c("c2", "c3", "c4_s","c5_s")]
-  fup[[i]] <- agg[followups > 3, sum(N)]/ s
+  fup[[i]] <- agg[followups > 2, sum(N)]/ s
 
 }
 ```
@@ -445,25 +445,25 @@ summary(unlist(fcases))
 ```
 
     ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-    ##   104.0   120.0   124.0   123.9   128.0   143.0
+    ##   104.0   120.0   124.0   124.3   129.0   147.0
 
-Cumulative response rate by final wave:
+Cumulative response rate by the final wave:
 
 ``` r
 summary(unlist(pcases))
 ```
 
     ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-    ##  0.4622  0.5333  0.5511  0.5508  0.5689  0.6356
+    ##  0.4622  0.5333  0.5511  0.5523  0.5733  0.6533
 
-Expected proportion of cases with
+Expected proportion of cases with 2 or more waves:
 
 ``` r
 summary(unlist(fup))
 ```
 
     ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-    ##  0.3467  0.4133  0.4311  0.4293  0.4489  0.5022
+    ##  0.6356  0.6844  0.6978  0.6964  0.7067  0.7511
 
 Appendix
 ========
