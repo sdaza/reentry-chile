@@ -5,5 +5,5 @@ The re-entry study is an intensive longitudinal project that follows more than 2
 In this repository, we publish preliminary and descriptive analysis of the study.
 
 - **[Response Rate Estimation](reports/attrition.md)**
-- **[Characterizing Attrition (Pending)]()**
+- **[Characterizing Attrition (Pending)](README.md)**
 - **[Slides presentation by Pilar Larroulet, August 2017 (Spanish)](reports/isuc_08_2017.pdf)**
