@@ -68,7 +68,7 @@ b <- b[, ..nvars]
 
 # some descriptives
 anyDuplicated(b$id)
-table(b$edad)
+table(b$age)
 table(b$edu)
 table(b$fhealth)
 table(b$mhealth)
@@ -95,7 +95,7 @@ nrow(r)
 nrow(b) # 227 ?
 
 # why?
-b[!b$id %in% r$id]$id # two ids not in the record file!
+b[!b$id %in% r$id] # two ids not in the record file!
 
 ```
 
