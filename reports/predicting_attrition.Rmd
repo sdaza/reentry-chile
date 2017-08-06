@@ -81,7 +81,6 @@ setnames(r, names(r), tolower(names(r)))
 
 # select variables
 setnames(r, c("fecha ingreso", "encuestadora final"), c("ad", "int"))
-names(r)
 r[, admission := cleanDates(ad)]
 svars <- c("id","int","admission","c1","c2","c3","c4","ndc1","ndc2","ndc3","ndc4","start","week","twomonths","sixmonths")
 
@@ -174,6 +173,4 @@ ggplot(cdat, aes(x = age, y = c2, color = c2)) +
 
 ```
 
-
-# Appendix
 
