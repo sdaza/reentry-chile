@@ -1,0 +1,179 @@
+---
+title: "Modeling Attrition , Chile Reentry Study"
+output: rmarkdown::github_document
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+---
+
+We use the baseline dataset to explore which factors seems to predict attrition, and to identify potential biases of the observed data.
+
+```{r, echo = FALSE}
+knitr::opts_chunk$set(
+  fig.path = "plots/predict-attrition-"
+)
+```
+
+
+```{r, warning=FALSE, include=FALSE}
+
+rm(list=ls(all=TRUE))
+
+# okey, trying the dplyr thing... I am not convinced
+
+#+ libraries
+library(haven)
+library(sdazar)
+library(stringr)
+library(lubridate)
+library(ggplot2)
+library(ggthemes)
+library(lme4)
+
+#+ functions
+cleanDates <- function(text) {
+  a <- data.table(text)
+  a[, temp := str_extract(text, "([0-9]+/[0-9]+/[0-9]+)|([0-9]+-[0-9]+-[0-9]+)")]
+  a[, temp := str_replace_all(temp, "-", "/")]
+  a[grepl("20[0-9]+", temp), cc := as.Date(temp, format = "%d/%m/%Y")]
+  a[is.na(cc) && !grep("20[0-9]+", temp), cc := as.Date(temp, format = "%d/%m/%y")]
+  a[is.na(cc) && grep("20[0-9]+", temp), cc := as.Date(temp, format = "%d/%m/%Y")]
+  a[is.na(cc) && !grep("20[0-9]+", temp), cc := as.Date(temp, format = "%y/%m/%d")]
+  a[is.na(cc) && grepl("20[0-9]+", temp), cc := as.Date(temp, format = "%Y/%m/%d")]
+  suppressWarnings(a[as.numeric(text) > 0,
+                     cc := as.Date(as.numeric(text), origin = "1899-12-30")])
+
+  a[, year := year(cc)]
+  a[, month := month(cc)]
+  a[, day := day(cc)]
+
+  a[month %in% c(9:12), year := 2016]
+  a[month %in% c(1:8), year := 2017]
+  suppressWarnings(a[, nd := ymd(paste(year, month, day, sep= "-"))])
+
+  return(a$nd)
+}
+```
+
+```{r, warning=FALSE, include=TRUE}
+#+ get data
+path <- "/Users/sdaza/Dropbox/Projects/re-entry/10 investigadores/sdaza/data/baseline/baseline_08052017.dta"
+b <- as.data.table(read_stata(path))
+setnames(b, names(b), tolower(names(b)))
+
+ovars <- c("folio_2", "p1", "p7", "p13", "p194", "p195")
+nvars <- c("id", "age", "edu", "kids", "fhealth", "mhealth")
+
+setnames(b, ovars, nvars)
+b <- b[, ..nvars]
+
+
+# some descriptives
+anyDuplicated(b$id)
+table(b$edad)
+table(b$edu)
+table(b$fhealth)
+table(b$mhealth)
+
+#+ load records
+load("/Users/sdaza/Dropbox/Projects/re-entry/10 investigadores/sdaza/data/records/register.Rdata")
+
+r <- copy(dat); remove(dat)
+setnames(r, names(r), tolower(names(r)))
+
+# select variables
+setnames(r, c("fecha ingreso", "encuestadora final"), c("ad", "int"))
+names(r)
+r[, admission := cleanDates(ad)]
+svars <- c("id","int","admission","c1","c2","c3","c4","ndc1","ndc2","ndc3","ndc4","start","week","twomonths","sixmonths")
+
+r <- r[, ..svars]
+
+# create interviewer id variable
+r[, id_int := .GRP, int]
+table(r$id_int, useNA = "ifany")
+
+# number of cases
+nrow(r)
+nrow(b) # 227 ?
+
+# why?
+b[!b$id %in% r$id]$id # two ids not in the record file!
+
+```
+
+Why we have those missing ids?
+
+
+```{r, eval=FALSE, include=FALSE, warning=FALSE}
+
+dat <- r[b, on = "id"]
+dat[is.na(c1)]
+dat[is.na(c2)]
+
+# assign missing data
+vars <- c("fhealth", "mhealth")
+dat <- assmis(dat, list(vars), list(c(8,9)))
+table(dat$fhealth, useNA = "ifany")
+
+#+ explore some data
+
+library(INLA)
+library(brinla)
+
+
+formula <-  c2 ~ 1 + age + kids + edu +  mhealth +  f(id_int, model = "iid")
+
+m1 <- inla(formula, family = "binomial", data = dat,
+           control.compute = list(config = TRUE, dic = TRUE, cpo = TRUE),
+           control.predictor = list(compute = TRUE, link = 1),
+           verbose = TRUE)
+bri.hyperpar.summary(m1)
+
+bri.hyperpar.plot(m1)
+bri.fixed.plot(m1)
+
+summary(m1)
+
+library(rstanarm)
+library(bayesplot)
+
+cdat <- dat[complete.cases(dat[, .(age, kids, edu, mhealth, id_int)])]
+fit1 <- stan_glmer(c2 ~ age + kids + edu +  mhealth + (1|id_int),
+                   data = cdat,  family = binomial(link = "logit"))
+
+
+color_scheme_set("blue")
+
+posterior <- as.matrix(fit1)
+
+plot_title <- ggtitle("Posterior distributions",
+                      "with medians and 80% intervals")
+mcmc_areas(posterior,
+           pars = c("age", "kids", "edu", "mhealth"),
+           prob = 0.8) + plot_title
+
+ppc_dens_overlay(y = fit1$y,
+                 yrep = posterior_predict(fit1, draws = 50))
+
+
+# another example with rstanarm
+# Predicted probability as a function of x
+pr_response <- function(x, ests) plogis(ests[1] + ests[2] * x)
+# A function to slightly jitter the binary data
+jitt <- function(...) {
+  geom_point(aes_string(...), position = position_jitter(height = 0.05, width = 0.1),
+             size = 2, shape = 21, stroke = 0.2)
+}
+
+cdat[, age := as.numeric(age)]
+str(cdat)
+ggplot(cdat, aes(x = age, y = c2, color = c2)) +
+  scale_y_continuous(breaks = c(0, 0.5, 1)) +
+  jitt(x="age") +
+  stat_function(fun = pr_response, args = list(ests = coef(fit1)),
+                size = 2, color = "gray35")
+
+```
+
+
+# Appendix
+

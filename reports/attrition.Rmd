@@ -1,12 +1,12 @@
 ---
-title: "Response Rate Estimation Reentry Study Chile"
+title: "Response Rate Estimation, Chile Reentry Study"
 output: rmarkdown::github_document
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 ---
 
-In this report, we estimate response rates using the following criteria: 
+In this report, we estimate response rates using the following criteria:
 
-- The estimation by wave only uses cases far beyond the wave-specific observation window. For instance, for the wave *2-months*, we only consider those women who have been in the study for 4 months. 
+- The estimation by wave only uses cases far beyond the wave-specific observation window. For instance, for the wave *2-months*, we only consider those women who have been in the study for 4 months.
 - We use the observed response rates to simulate the final response rate of the study, and the rate 0.70 for the last wave (*one-year*).
 - This estimation is based on the administrative records of the study.
 
@@ -17,10 +17,10 @@ knitr::opts_chunk$set(
 ```
 
 
-```{r, warning=FALSE, include=FALSE}
+```{r, warning = FALSE, include = FALSE}
 rm(list=ls(all=TRUE))
 
-setwd("/Users/sdaza/Dropbox/Projects/re-entry/10 investigadores/sdaza/attrition")
+path <- "/Users/sdaza/Dropbox/Projects/re-entry/10 investigadores/sdaza/data/records/"
 
 library(readxl)
 library(sdazar)
@@ -30,9 +30,14 @@ library(ggplot2)
 library(ggthemes)
 
 #+ get data
-dat <- data.table(read_excel("20170628 Logros.xlsx", sheet = "LISTADO TOTAL", skip = 0))
+dat <- data.table(read_excel(paste0(path, "20170628 Logros.xlsx"), sheet = "LISTADO TOTAL", skip = 0))
 setnames(dat, "ID FOLIO", "id")
 anyDuplicated(dat[, id])
+
+text <- lookvar(dat, "NOMBRE")
+text <- c(text, lookvar(dat, "APELLIDOS"))
+dat[, (text) := NULL]
+
 ```
 
 ```{r, include = FALSE}
@@ -48,17 +53,17 @@ cleanDates <- function(text) {
   a[is.na(cc) && grep("20[0-9]+", temp), cc := as.Date(temp, format = "%d/%m/%Y")]
   a[is.na(cc) && !grep("20[0-9]+", temp), cc := as.Date(temp, format = "%y/%m/%d")]
   a[is.na(cc) && grepl("20[0-9]+", temp), cc := as.Date(temp, format = "%Y/%m/%d")]
-  suppressWarnings(a[as.numeric(text) > 0, 
+  suppressWarnings(a[as.numeric(text) > 0,
                      cc := as.Date(as.numeric(text), origin = "1899-12-30")])
-  
+
   a[, year := year(cc)]
   a[, month := month(cc)]
   a[, day := day(cc)]
-  
+
   a[month %in% c(9:12), year := 2016]
   a[month %in% c(1:8), year := 2017]
   suppressWarnings(a[, nd := ymd(paste(year, month, day, sep= "-"))])
-  
+
   return(a$nd)
 }
 ```
@@ -87,8 +92,8 @@ omonths <- paste0(c(rep(2016, length(9:12)), rep(2017, length(1:7))), "-", c(9:1
 dat[, date := factor(date, levels = omonths )]
 
 agg <- dat[, .N, date]
-ggplot(agg[!is.na(date)], aes(y = N, x = date)) + 
-  geom_bar(stat = "identity", fill = "orange") + 
+ggplot(agg[!is.na(date)], aes(y = N, x = date)) +
+  geom_bar(stat = "identity", fill = "orange") +
   labs(x = "\nMonth", y = "Number of women\n") +
   theme_minimal()
 ```
@@ -120,10 +125,10 @@ dat[dc1 == "V16/12716", ndc1 := as.Date("2016-12-27")]
 summary(dat$ndc1)
 ```
 
-To check these cases: 
+To check these cases:
 
 ```{r}
-dat[, today := today()] 
+dat[, today := today()]
 
 #  baseline time (in days) with respect to start
 t <- as.numeric(dat$ndc1 - dat$start) # difference
@@ -133,7 +138,7 @@ table(t > 0) # only few cases with positive numbers
 dat[t > 0, .(id, start, ndc1, dc1)]
 ```
 
-## First Week 
+## First Week
 
 8 cases missing, 5 inconsistent.
 
@@ -169,7 +174,7 @@ rate2 <- prop.table(tab)[2]
 
 ## Two months
 
-8 cases missing, 1 inconsistent. 
+8 cases missing, 1 inconsistent.
 
 ```{r}
 #+ two months
@@ -230,7 +235,7 @@ summary(dat[c4 == 1, ndc4])
 t <- as.numeric((dat$ndc4 - dat$start) / 30.5)
 
 Mean(t[t>0])
-Max(t[t>0]) 
+Max(t[t>0])
 Min(t[t>0]) # 4 months, really?
 
 dat[t < 0, .(id, start, ndc1, ndc2, ndc3, ndc4)]
@@ -246,7 +251,7 @@ rate4 <- prop.table(tab)[2]
 
 ## Summary response rates
 
-From first week to six months. 
+From first week to six months.
 
 ```{r}
 # print rates
@@ -268,12 +273,12 @@ for (i in 1:1000) {
   dat[today < sixmonths & c4 != 1, c4_s := ifelse(runif(.N) < rate4, 1, 0)]
   dat[c4 == 1, c4_s := 1]
   dat[is.na(c4_s), c4_s := c4]
-  
+
   dat[, c5_s := 0]
   dat[c4_s == 1, c5_s := ifelse(runif(.N) < .70, 1, 0)] # using rate .70
   fcases[[i]] <- table(dat$c5_s)[2]
   pcases[[i]] <- prop.table(table(dat$c5_s))[2] # respect to the total
-  
+
   agg <- dat[, .N, .(c1,c2,c3,c4_s,c5_s)]
   s <- sum(agg$N)
   agg[, prop := N / sum(N)]
@@ -290,7 +295,7 @@ The expect number of cases in the final sample:
 summary(unlist(fcases))
 ```
 
-Cumulative response rate by the final wave: 
+Cumulative response rate by the final wave:
 
 ```{r}
 summary(unlist(pcases))
@@ -317,17 +322,23 @@ cleanDates <- function(text) {
   a[is.na(cc) && grep("20[0-9]+", temp), cc := as.Date(temp, format = "%d/%m/%Y")]
   a[is.na(cc) && !grep("20[0-9]+", temp), cc := as.Date(temp, format = "%y/%m/%d")]
   a[is.na(cc) && grepl("20[0-9]+", temp), cc := as.Date(temp, format = "%Y/%m/%d")]
-  suppressWarnings(a[as.numeric(text) > 0, 
+  suppressWarnings(a[as.numeric(text) > 0,
                      cc := as.Date(as.numeric(text), origin = "1899-12-30")])
-  
+
   a[, year := year(cc)]
   a[, month := month(cc)]
   a[, day := day(cc)]
-  
+
   a[month %in% c(9:12), year := 2016]
   a[month %in% c(1:8), year := 2017]
-  suppressWarnings(a[, nd := ymd(paste(year, month, day, sep= "-"))])
-  
+  suppressWarnings(a[, nd := ymd(paste(yeıar, month, day, sep= "-"))])
+
   return(a$nd)
 }
+```
+
+```{r, include = FALSE}
+
+save(dat, file = "/Users/sdaza/Dropbox/Projects/re-entry/10 investigadores/sdaza/data/records/register.Rdata")
+
 ```
