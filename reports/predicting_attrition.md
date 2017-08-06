@@ -1,18 +1,10 @@
----
-title: "Modeling Attrition , Chile Reentry Study"
-output: rmarkdown::github_document
-date: "August 06, 2017"
----
+Modeling Attrition , Chile Reentry Study
+================
+August 06, 2017
 
 We use the baseline dataset to explore which factors seems to predict attrition, and to identify potential biases of the observed data.
 
-
-
-
-
-
-
-```r
+``` r
 #+ get data
 path <- "/Users/sdaza/Dropbox/Projects/re-entry/10 investigadores/sdaza/data/baseline/baseline_08052017.dta"
 b <- as.data.table(read_stata(path))
@@ -29,49 +21,39 @@ b <- b[, ..nvars]
 anyDuplicated(b$id)
 ```
 
-```
-## [1] 0
-```
+    ## [1] 0
 
-```r
+``` r
 table(b$edad)
 ```
 
-```
-## < table of extent 0 >
-```
+    ## < table of extent 0 >
 
-```r
+``` r
 table(b$edu)
 ```
 
-```
-## 
-##  0  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 
-## 10  3 10  8  9 17 15 50 11 20  8 51  1 11  2  1
-```
+    ## 
+    ##  0  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 
+    ## 10  3 10  8  9 17 15 50 11 20  8 51  1 11  2  1
 
-```r
+``` r
 table(b$fhealth)
 ```
 
-```
-## 
-##   1   2   3   4   5   8   9 
-##  31 102  63  24   5   1   1
-```
+    ## 
+    ##   1   2   3   4   5   8   9 
+    ##  31 102  63  24   5   1   1
 
-```r
+``` r
 table(b$mhealth)
 ```
 
-```
-## 
-##   1   2   3   4   5   8   9 
-##  26 132  47  16   2   3   1
-```
+    ## 
+    ##   1   2   3   4   5   8   9 
+    ##  26 132  47  16   2   3   1
 
-```r
+``` r
 #+ load records
 load("/Users/sdaza/Dropbox/Projects/re-entry/10 investigadores/sdaza/data/records/register.Rdata")
 
@@ -90,45 +72,32 @@ r[, id_int := .GRP, int]
 table(r$id_int, useNA = "ifany")
 ```
 
-```
-## 
-##  1  2  3  4  5 
-## 33 59 58 58 17
-```
+    ## 
+    ##  1  2  3  4  5 
+    ## 33 59 58 58 17
 
-```r
+``` r
 # number of cases
 nrow(r)
 ```
 
-```
-## [1] 225
-```
+    ## [1] 225
 
-```r
+``` r
 nrow(b) # 227 ?
 ```
 
-```
-## [1] 227
-```
+    ## [1] 227
 
-```r
+``` r
 # why?
 b[!b$id %in% r$id]$id # two ids not in the record file!
 ```
 
-```
-## [1] 40280 10011
-## attr(,"label")
-## [1] "folio_2"
-## attr(,"format.stata")
-## [1] "%12.0g"
-```
+    ## [1] 40280 10011
+    ## attr(,"label")
+    ## [1] "folio_2"
+    ## attr(,"format.stata")
+    ## [1] "%12.0g"
 
 Why we have those missing ids?
-
-
-
-
-
