@@ -424,8 +424,6 @@ ggplot(t, aes(days, fill = wave, colour = wave)) +
   annotate("text", x = 30.5 * 6, y = 0.04, label = "6 months", size = 3)
 ```
 
-    ## Warning: Removed 215 rows containing non-finite values (stat_density).
-
 ![](plots/attrition-unnamed-chunk-13-1.png)
 
 Summary response rates
@@ -478,7 +476,7 @@ summary(unlist(fcases))
 ```
 
     ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-    ##   104.0   119.0   124.0   123.7   128.0   147.0
+    ##     104     120     124     124     128     146
 
 Cumulative response rate by the final wave:
 
@@ -487,7 +485,7 @@ summary(unlist(pcases))
 ```
 
     ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-    ##  0.4622  0.5289  0.5511  0.5499  0.5689  0.6533
+    ##  0.4622  0.5333  0.5511  0.5509  0.5689  0.6489
 
 Expected proportion of cases with 2 or more waves:
 
@@ -496,7 +494,7 @@ summary(unlist(fup))
 ```
 
     ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-    ##  0.6356  0.6844  0.6933  0.6954  0.7067  0.7467
+    ##  0.6400  0.6844  0.6978  0.6962  0.7067  0.7556
 
 Appendix
 ========

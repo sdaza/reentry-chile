@@ -216,7 +216,7 @@ rate3 <- prop.table(tab)[2]
 
 3 missing dates, no inconsistencies!
 
-```{r, warning = FALSE}
+```{r}
 #+ six months
 # response
 setnames(dat, "PARTICIPA__2", "c4")
@@ -250,7 +250,7 @@ prop.table(tab)
 rate4 <- prop.table(tab)[2]
 ```
 
-```{r}
+```{r, warning=FALSE, message=FALSE}
 # plot time by application
 t2 <- as.numeric((dat$ndc2 - dat$start))
 t3 <- as.numeric((dat$ndc3 - dat$start))
