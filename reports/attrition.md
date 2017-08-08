@@ -1,6 +1,6 @@
 Response Rate Estimation, Chile Reentry Study
 ================
-August 06, 2017
+August 08, 2017
 
 In this report, we estimate response rates using the following criteria:
 
@@ -381,15 +381,15 @@ dat[, sixmonths := start + 30.5 * 8] # add 8 months
 
     ## 
     ##  0  1 
-    ## 30 91
+    ## 31 93
 
 ``` r
 prop.table(tab)
 ```
 
     ## 
-    ##         0         1 
-    ## 0.2479339 0.7520661
+    ##    0    1 
+    ## 0.25 0.75
 
 ``` r
 rate4 <- prop.table(tab)[2]
@@ -405,8 +405,8 @@ From first week to six months.
 cbind(rate2, rate3, rate4)
 ```
 
-    ##       rate2     rate3     rate4
-    ## 1 0.8044444 0.7777778 0.7520661
+    ##       rate2     rate3 rate4
+    ## 1 0.8044444 0.7777778  0.75
 
 Simulate final response rate.
 -----------------------------
@@ -445,7 +445,7 @@ summary(unlist(fcases))
 ```
 
     ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-    ##   105.0   120.0   124.0   124.3   128.0   146.0
+    ##   102.0   120.0   124.0   123.7   128.0   144.0
 
 Cumulative response rate by the final wave:
 
@@ -454,7 +454,7 @@ summary(unlist(pcases))
 ```
 
     ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-    ##  0.4667  0.5333  0.5511  0.5523  0.5689  0.6489
+    ##  0.4533  0.5333  0.5511  0.5497  0.5689  0.6400
 
 Expected proportion of cases with 2 or more waves:
 
@@ -463,7 +463,7 @@ summary(unlist(fup))
 ```
 
     ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-    ##  0.6400  0.6889  0.6978  0.6986  0.7111  0.7422
+    ##  0.6356  0.6844  0.6978  0.6954  0.7067  0.7511
 
 Appendix
 ========

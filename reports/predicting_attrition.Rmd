@@ -96,7 +96,6 @@ nrow(b) # 227 ?
 
 # why?
 b[!b$id %in% r$id] # two ids not in the record file!
-
 ```
 
 Why we have those missing ids?
