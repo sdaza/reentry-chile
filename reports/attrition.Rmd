@@ -66,7 +66,9 @@ cleanDates <- function(text) {
 
   return(a$nd)
 }
+
 ```
+
 
 # Start date
 
@@ -214,7 +216,7 @@ rate3 <- prop.table(tab)[2]
 
 3 missing dates, no inconsistencies!
 
-```{r}
+```{r, warning = FALSE}
 #+ six months
 # response
 setnames(dat, "PARTICIPA__2", "c4")
@@ -248,6 +250,29 @@ prop.table(tab)
 rate4 <- prop.table(tab)[2]
 ```
 
+```{r}
+# plot time by application
+t2 <- as.numeric((dat$ndc2 - dat$start))
+t3 <- as.numeric((dat$ndc3 - dat$start))
+t4 <- as.numeric((dat$ndc4 - dat$start))
+
+t <- data.table(id = dat$id, "1 week" = t2, "2 months" = t3, "6  months" = t4)
+t <- melt(t, id.vars = "id", value.name = "days", variable.name = "wave")
+t[, wave := factor(wave)]
+table(t$wave)
+
+ggplot(t, aes(days, fill = wave, colour = wave)) +
+  geom_density(alpha = 0.1) + theme_minimal() + theme(legend.position="top") +
+   xlim(0, 365) + labs(x = "\nDays from prison release",
+   y = "Density\n", title = "Density of time to interview from prison release")+
+  geom_vline(xintercept = 7, color = "gray", size = 0.7, linetype = "dotted") +
+  geom_vline(xintercept = 30.5 * 2, color = "gray", size = 0.7, linetype = "dotted") +
+  geom_vline(xintercept = 30.5 * 6, color = "gray", size = 0.7, linetype = "dotted") +
+  annotate("text", x = 7, y = 0.13, label = "1 week", size = 3) +
+  annotate("text", x = 30.5 * 2, y = 0.07, label = "2 months", size = 3) +
+  annotate("text", x = 30.5 * 6, y = 0.04, label = "6 months", size = 3)
+```
+
 
 ## Summary response rates
 
@@ -258,7 +283,7 @@ From first week to six months.
 cbind(rate2, rate3, rate4)
 ```
 
-## Simulate final response rate.
+## Simulate final response rate
 
 All the effort should be put during these last waves!
 

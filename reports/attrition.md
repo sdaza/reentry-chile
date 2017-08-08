@@ -395,6 +395,39 @@ prop.table(tab)
 rate4 <- prop.table(tab)[2]
 ```
 
+``` r
+# plot time by application
+t2 <- as.numeric((dat$ndc2 - dat$start))
+t3 <- as.numeric((dat$ndc3 - dat$start))
+t4 <- as.numeric((dat$ndc4 - dat$start))
+
+t <- data.table(id = dat$id, "1 week" = t2, "2 months" = t3, "6  months" = t4)
+t <- melt(t, id.vars = "id", value.name = "days", variable.name = "wave")
+t[, wave := factor(wave)]
+table(t$wave)
+```
+
+    ## 
+    ##    1 week  2 months 6  months 
+    ##       225       225       225
+
+``` r
+ggplot(t, aes(days, fill = wave, colour = wave)) +
+  geom_density(alpha = 0.1) + theme_minimal() + theme(legend.position="top") +
+   xlim(0, 365) + labs(x = "\nDays from prison release",
+   y = "Density\n", title = "Density of time to interview from prison release")+
+  geom_vline(xintercept = 7, color = "gray", size = 0.7, linetype = "dotted") +
+  geom_vline(xintercept = 30.5 * 2, color = "gray", size = 0.7, linetype = "dotted") +
+  geom_vline(xintercept = 30.5 * 6, color = "gray", size = 0.7, linetype = "dotted") +
+  annotate("text", x = 7, y = 0.13, label = "1 week", size = 3) +
+  annotate("text", x = 30.5 * 2, y = 0.07, label = "2 months", size = 3) +
+  annotate("text", x = 30.5 * 6, y = 0.04, label = "6 months", size = 3)
+```
+
+    ## Warning: Removed 215 rows containing non-finite values (stat_density).
+
+![](plots/attrition-unnamed-chunk-13-1.png)
+
 Summary response rates
 ----------------------
 
@@ -408,8 +441,8 @@ cbind(rate2, rate3, rate4)
     ##       rate2     rate3 rate4
     ## 1 0.8044444 0.7777778  0.75
 
-Simulate final response rate.
------------------------------
+Simulate final response rate
+----------------------------
 
 All the effort should be put during these last waves!
 
@@ -445,7 +478,7 @@ summary(unlist(fcases))
 ```
 
     ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-    ##   102.0   120.0   124.0   123.7   128.0   144.0
+    ##   104.0   119.0   124.0   123.7   128.0   147.0
 
 Cumulative response rate by the final wave:
 
@@ -454,7 +487,7 @@ summary(unlist(pcases))
 ```
 
     ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-    ##  0.4533  0.5333  0.5511  0.5497  0.5689  0.6400
+    ##  0.4622  0.5289  0.5511  0.5499  0.5689  0.6533
 
 Expected proportion of cases with 2 or more waves:
 
@@ -463,7 +496,7 @@ summary(unlist(fup))
 ```
 
     ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-    ##  0.6356  0.6844  0.6978  0.6954  0.7067  0.7511
+    ##  0.6356  0.6844  0.6933  0.6954  0.7067  0.7467
 
 Appendix
 ========
