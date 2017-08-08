@@ -395,6 +395,9 @@ prop.table(tab)
 rate4 <- prop.table(tab)[2]
 ```
 
+Time of response
+----------------
+
 ``` r
 # plot time by application
 t2 <- as.numeric((dat$ndc2 - dat$start))
@@ -476,7 +479,7 @@ summary(unlist(fcases))
 ```
 
     ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-    ##     104     120     124     124     128     146
+    ##   100.0   119.0   124.0   123.5   128.0   147.0
 
 Cumulative response rate by the final wave:
 
@@ -485,7 +488,7 @@ summary(unlist(pcases))
 ```
 
     ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-    ##  0.4622  0.5333  0.5511  0.5509  0.5689  0.6489
+    ##  0.4444  0.5289  0.5511  0.5491  0.5689  0.6533
 
 Expected proportion of cases with 2 or more waves:
 
@@ -494,7 +497,7 @@ summary(unlist(fup))
 ```
 
     ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-    ##  0.6400  0.6844  0.6978  0.6962  0.7067  0.7556
+    ##  0.6400  0.6844  0.6933  0.6952  0.7067  0.7511
 
 Appendix
 ========
