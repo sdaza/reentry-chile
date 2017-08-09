@@ -1,6 +1,5 @@
 Modeling Attrition , Chile Reentry Study
 ================
-Sebastian Daza
 August 08, 2017
 
 We use the baseline dataset to explore which factors seems to predict attrition, and to identify potential biases of the observed data.
