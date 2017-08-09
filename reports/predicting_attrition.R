@@ -1,25 +1,21 @@
----
-title: "Modeling Attrition , Chile Reentry Study"
-output: rmarkdown::github_document
-date: "`r format(Sys.time(), '%B %d, %Y')`"
----
+#'---
+#'title: "Modeling Attrition , Chile Reentry Study"
+#' author: Sebastian Daza
+#'output: rmarkdown::github_document
+#'date: "`r format(Sys.time(), '%B %d, %Y')`"
+#'---
 
-We use the baseline dataset to explore which factors seems to predict attrition, and to identify potential biases of the observed data.
+#'We use the baseline dataset to explore which factors seems to predict attrition, and to identify potential biases of the observed data.
 
-```{r, echo = FALSE}
-knitr::opts_chunk$set(
-  fig.path = "plots/predict-attrition-"
-)
-```
+#+ setup, include = FALSE
+knitr::opts_chunk$set(fig.path = "plots/predict-attrition-")
 
 
-```{r, warning=FALSE, include=FALSE}
-
+#+ libraries, warning=FALSE, include=FALSE
+# clean workspace
 rm(list=ls(all=TRUE))
 
-# okey, trying the dplyr thing... I am not convinced
-
-#+ libraries
+# libraries
 library(haven)
 library(sdazar)
 library(stringr)
@@ -27,8 +23,10 @@ library(lubridate)
 library(ggplot2)
 library(ggthemes)
 library(lme4)
+library(rstanarm)
+library(bayesplot)
 
-#+ functions
+# clean date function
 cleanDates <- function(text) {
   a <- data.table(text)
   a[, temp := str_extract(text, "([0-9]+/[0-9]+/[0-9]+)|([0-9]+-[0-9]+-[0-9]+)")]
@@ -51,10 +49,10 @@ cleanDates <- function(text) {
 
   return(a$nd)
 }
-```
 
-```{r, warning=FALSE, include=TRUE}
-#+ get data
+
+#+ data, warning = FALSE, include = TRUE
+# get data
 path <- "/Users/sdaza/Dropbox/Projects/re-entry/10 investigadores/sdaza/data/baseline/baseline_08052017.dta"
 b <- as.data.table(read_stata(path))
 setnames(b, names(b), tolower(names(b)))
@@ -65,7 +63,6 @@ nvars <- c("id", "age", "edu", "kids", "fhealth", "mhealth")
 setnames(b, ovars, nvars)
 b <- b[, ..nvars]
 
-
 # some descriptives
 anyDuplicated(b$id)
 table(b$age)
@@ -73,7 +70,7 @@ table(b$edu)
 table(b$fhealth)
 table(b$mhealth)
 
-#+ load records
+# load records
 load("/Users/sdaza/Dropbox/Projects/re-entry/10 investigadores/sdaza/data/records/register.Rdata")
 
 r <- copy(dat); remove(dat)
@@ -92,18 +89,11 @@ table(r$id_int, useNA = "ifany")
 
 # number of cases
 nrow(r)
-nrow(b) # 227 ?
+nrow(b)
 
-# why?
-b[!b$id %in% r$id] # two ids not in the record file!
-```
-
-Why we have those missing ids?
-
-
-```{r, eval=FALSE, include=FALSE, warning=FALSE}
-
-dat <- r[b, on = "id"]
+#+ merge data, eval = TRUE, include = TRUE, warning = FALSE
+setkey(b, id); setkey(r, id)
+dat <- b[r]
 dat[is.na(c1)]
 dat[is.na(c2)]
 
@@ -112,37 +102,15 @@ vars <- c("fhealth", "mhealth")
 dat <- assmis(dat, list(vars), list(c(8,9)))
 table(dat$fhealth, useNA = "ifany")
 
-#+ explore some data
+#' Let's model response rate.
 
-library(INLA)
-library(brinla)
-
-
-formula <-  c2 ~ 1 + age + kids + edu +  mhealth +  f(id_int, model = "iid")
-
-m1 <- inla(formula, family = "binomial", data = dat,
-           control.compute = list(config = TRUE, dic = TRUE, cpo = TRUE),
-           control.predictor = list(compute = TRUE, link = 1),
-           verbose = TRUE)
-bri.hyperpar.summary(m1)
-
-bri.hyperpar.plot(m1)
-bri.fixed.plot(m1)
-
-summary(m1)
-
-library(rstanarm)
-library(bayesplot)
-
-cdat <- dat[complete.cases(dat[, .(age, kids, edu, mhealth, id_int)])]
+#+ stan, warning = FALSE, message = FALSE,  results = "hide"
 fit1 <- stan_glmer(c2 ~ age + kids + edu +  mhealth + (1|id_int),
-                   data = cdat,  family = binomial(link = "logit"))
+                   data = dat,  family = binomial(link = "logit"))
 
-
+#+ explore model
 color_scheme_set("blue")
-
 posterior <- as.matrix(fit1)
-
 plot_title <- ggtitle("Posterior distributions",
                       "with medians and 80% intervals")
 mcmc_areas(posterior,
@@ -151,25 +119,4 @@ mcmc_areas(posterior,
 
 ppc_dens_overlay(y = fit1$y,
                  yrep = posterior_predict(fit1, draws = 50))
-
-
-# another example with rstanarm
-# Predicted probability as a function of x
-pr_response <- function(x, ests) plogis(ests[1] + ests[2] * x)
-# A function to slightly jitter the binary data
-jitt <- function(...) {
-  geom_point(aes_string(...), position = position_jitter(height = 0.05, width = 0.1),
-             size = 2, shape = 21, stroke = 0.2)
-}
-
-cdat[, age := as.numeric(age)]
-str(cdat)
-ggplot(cdat, aes(x = age, y = c2, color = c2)) +
-  scale_y_continuous(breaks = c(0, 0.5, 1)) +
-  jitt(x="age") +
-  stat_function(fun = pr_response, args = list(ests = coef(fit1)),
-                size = 2, color = "gray35")
-
-```
-
 

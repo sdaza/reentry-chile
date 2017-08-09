@@ -1,11 +1,12 @@
 Modeling Attrition , Chile Reentry Study
 ================
-August 06, 2017
+Sebastian Daza
+August 08, 2017
 
 We use the baseline dataset to explore which factors seems to predict attrition, and to identify potential biases of the observed data.
 
 ``` r
-#+ get data
+# get data
 path <- "/Users/sdaza/Dropbox/Projects/re-entry/10 investigadores/sdaza/data/baseline/baseline_08052017.dta"
 b <- as.data.table(read_stata(path))
 setnames(b, names(b), tolower(names(b)))
@@ -15,7 +16,6 @@ nvars <- c("id", "age", "edu", "kids", "fhealth", "mhealth")
 
 setnames(b, ovars, nvars)
 b <- b[, ..nvars]
-
 
 # some descriptives
 anyDuplicated(b$id)
@@ -58,7 +58,7 @@ table(b$mhealth)
     ##  26 132  47  16   2   3   1
 
 ``` r
-#+ load records
+# load records
 load("/Users/sdaza/Dropbox/Projects/re-entry/10 investigadores/sdaza/data/records/register.Rdata")
 
 r <- copy(dat); remove(dat)
@@ -88,18 +88,58 @@ nrow(r)
     ## [1] 225
 
 ``` r
-nrow(b) # 227 ?
+nrow(b)
 ```
 
     ## [1] 227
 
 ``` r
-# why?
-b[!b$id %in% r$id] # two ids not in the record file!
+setkey(b, id); setkey(r, id)
+dat <- b[r]
+dat[is.na(c1)]
 ```
 
-    ##       id age edu kids fhealth mhealth
-    ## 1: 40280  30   5    1       2       3
-    ## 2: 10011  52  12    5       2       2
+    ## Empty data.table (0 rows) of 21 cols: id,age,edu,kids,fhealth,mhealth...
 
-Why we have those missing ids?
+``` r
+dat[is.na(c2)]
+```
+
+    ## Empty data.table (0 rows) of 21 cols: id,age,edu,kids,fhealth,mhealth...
+
+``` r
+# assign missing data
+vars <- c("fhealth", "mhealth")
+dat <- assmis(dat, list(vars), list(c(8,9)))
+table(dat$fhealth, useNA = "ifany")
+```
+
+    ## 
+    ##    1    2    3    4    5 <NA> 
+    ##   31  100   63   24    5    2
+
+Let's model response rate.
+
+``` r
+fit1 <- stan_glmer(c2 ~ age + kids + edu +  mhealth + (1|id_int),
+                   data = dat,  family = binomial(link = "logit"))
+```
+
+``` r
+color_scheme_set("blue")
+posterior <- as.matrix(fit1)
+plot_title <- ggtitle("Posterior distributions",
+                      "with medians and 80% intervals")
+mcmc_areas(posterior,
+           pars = c("age", "kids", "edu", "mhealth"),
+           prob = 0.8) + plot_title
+```
+
+![](plots/predict-attrition-explore%20model-1.png)
+
+``` r
+ppc_dens_overlay(y = fit1$y,
+                 yrep = posterior_predict(fit1, draws = 50))
+```
+
+![](plots/predict-attrition-explore%20model-2.png)
