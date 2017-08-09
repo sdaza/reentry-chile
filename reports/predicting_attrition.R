@@ -120,7 +120,7 @@ stan_caterpillar(fit1, pars = "b\\[\\(Intercept\\) id_int\\:[0-9]\\]",
                  pars_label = paste0("Interviewer", 1:5))
 
 #'It doesn't seem to be the case!
-
+#'
 #'### Predicting response using covariates
 #+ stan, warning = FALSE, message = FALSE,  results = "hide"
 fit1 <- stan_glmer(c2 ~ age + kids + edu +  mhealth + (1|id_int),

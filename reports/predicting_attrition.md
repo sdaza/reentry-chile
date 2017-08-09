@@ -36,7 +36,9 @@ stan_caterpillar(fit1, pars = "b\\[\\(Intercept\\) id_int\\:[0-9]\\]",
 
 ![](plots/predict-attrition-interviewers-1.png)
 
-It doesn't seem to be the case! \#\#\# Predicting response using covariates
+It doesn't seem to be the case!
+
+### Predicting response using covariates
 
 ``` r
 fit1 <- stan_glmer(c2 ~ age + kids + edu +  mhealth + (1|id_int),
