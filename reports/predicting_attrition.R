@@ -1,11 +1,12 @@
 #'---
 #'title: "Modeling Attrition , Chile Reentry Study"
-#' author: "
+#'author:
 #'output: rmarkdown::github_document
 #'date: "`r format(Sys.time(), '%B %d, %Y')`"
 #'---
 
-#'We use the baseline dataset to explore which factors seems to predict attrition, and to identify potential biases of the observed data.
+#'We use the baseline dataset to explore which factors seems to predict attrition,
+#' and to identify potential biases of the data.
 
 #+ setup, include = FALSE
 knitr::opts_chunk$set(fig.path = "plots/predict-attrition-")
@@ -24,6 +25,7 @@ library(ggthemes)
 library(lme4)
 library(rstanarm)
 library(bayesplot)
+library(StanCat)
 
 # clean date function
 cleanDates <- function(text) {
@@ -50,7 +52,7 @@ cleanDates <- function(text) {
 }
 
 
-#+ data, warning = FALSE, include = TRUE
+#+ data, warning = FALSE, include = FALSE
 # get data
 path <- "/Users/sdaza/Dropbox/Projects/re-entry/10 investigadores/sdaza/data/baseline/baseline_08052017.dta"
 b <- as.data.table(read_stata(path))
@@ -90,19 +92,36 @@ table(r$id_int, useNA = "ifany")
 nrow(r)
 nrow(b)
 
-#+ merge data, eval = TRUE, include = TRUE, warning = FALSE
+#+ merge data, eval = TRUE, include = FALSE, warning = FALSE
 setkey(b, id); setkey(r, id)
 dat <- b[r]
-dat[is.na(c1)]
-dat[is.na(c2)]
+# dat[is.na(c1)]
+# dat[is.na(c2)]
 
 # assign missing data
 vars <- c("fhealth", "mhealth")
 dat <- assmis(dat, list(vars), list(c(8,9)))
 table(dat$fhealth, useNA = "ifany")
 
-#' Let's model response rate.
+#'# Descriptives
+#' The total sample is `r nrow(dat)`.
 
+#+ descriptives
+summary(dat[, .(age, kids, edu, mhealth)])
+
+#'# Modeling response first week
+
+#'### Is variance of response explained by the Interviewer?
+#'
+#+ interviewers, warning = FALSE, message = FALSE,  results = "hide"
+fit1 <- stan_glmer(c2 ~+ (1|id_int),
+                   data = dat,  family = binomial(link = "logit"))
+stan_caterpillar(fit1, pars = "b\\[\\(Intercept\\) id_int\\:[0-9]\\]",
+                 pars_label = paste0("Interviewer", 1:5))
+
+#'It doesn't seem to be the case!
+
+#'### Predicting response using covariates
 #+ stan, warning = FALSE, message = FALSE,  results = "hide"
 fit1 <- stan_glmer(c2 ~ age + kids + edu +  mhealth + (1|id_int),
                    data = dat,  family = binomial(link = "logit"))
