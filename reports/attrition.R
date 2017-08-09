@@ -1,6 +1,6 @@
 #'---
 #'title: "Response Rate Estimation, Chile Reentry Study"
-#' author: Sebastian Daza
+#' author: ""
 #'output: rmarkdown::github_document
 #'date: "`r format(Sys.time(), '%B %d, %Y')`"
 #'---

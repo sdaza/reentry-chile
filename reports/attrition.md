@@ -1,6 +1,5 @@
 Response Rate Estimation, Chile Reentry Study
 ================
-Sebastian Daza
 August 09, 2017
 
 In this report, we estimate response rates using the following criteria:
@@ -446,7 +445,7 @@ summary(unlist(fcases))
 ```
 
     ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-    ##   102.0   119.0   123.0   123.4   128.0   143.0
+    ##   103.0   119.0   124.0   123.3   128.0   141.0
 
 Cumulative response rate by the final wave:
 
@@ -455,7 +454,7 @@ summary(unlist(pcases))
 ```
 
     ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-    ##  0.4533  0.5289  0.5467  0.5483  0.5689  0.6356
+    ##  0.4578  0.5289  0.5511  0.5480  0.5689  0.6267
 
 Expected proportion of cases with 2 or more waves:
 
@@ -464,7 +463,7 @@ summary(unlist(fup))
 ```
 
     ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-    ##  0.6400  0.6844  0.6933  0.6942  0.7067  0.7600
+    ##  0.6356  0.6844  0.6933  0.6941  0.7067  0.7556
 
 Appendix
 ========
