@@ -1,6 +1,6 @@
 #'---
 #'title: "Modeling Attrition , Chile Reentry Study"
-#' author: ""
+#' author: "
 #'output: rmarkdown::github_document
 #'date: "`r format(Sys.time(), '%B %d, %Y')`"
 #'---
@@ -9,7 +9,6 @@
 
 #+ setup, include = FALSE
 knitr::opts_chunk$set(fig.path = "plots/predict-attrition-")
-
 
 #+ libraries, warning=FALSE, include=FALSE
 # clean workspace
