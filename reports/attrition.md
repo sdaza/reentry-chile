@@ -4,7 +4,7 @@ August 10, 2017
 
 In this report, we estimate response rates using the following criteria:
 
--   The estimation by wave only uses cases far beyond the wave-specific observation window. For instance, for the wave *2-months*, we only con\#'sider \#'those women who have been in the study for 4 months.
+-   The estimation by wave only uses cases far beyond the wave-specific observation window. For instance, for the wave *2-months*, we only consider those women who have been in the study for 4 months.
 -   We use the observed response rates to simulate the final response rate of the study, and the rate 0.70 for the last wave (*one-year*).
 -   This estimation is based on the administrative records of the study.
 
@@ -488,7 +488,7 @@ summary(unlist(fcases))
 ```
 
     ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-    ##   101.0   119.0   123.0   123.1   127.0   141.0
+    ##   105.0   119.0   123.0   123.1   127.0   143.0
 
 Cumulative response rate by the final wave:
 
@@ -497,7 +497,7 @@ summary(unlist(pcases))
 ```
 
     ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-    ##  0.4489  0.5289  0.5467  0.5471  0.5644  0.6267
+    ##  0.4667  0.5289  0.5467  0.5471  0.5644  0.6356
 
 Expected proportion of cases with 2 or more waves:
 
@@ -506,9 +506,9 @@ summary(unlist(fup))
 ```
 
     ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-    ##  0.6444  0.6800  0.6933  0.6918  0.7022  0.7378
+    ##  0.6356  0.6844  0.6933  0.6935  0.7067  0.7467
 
-Appecdix
+Appendix
 ========
 
 Function to clean dates
