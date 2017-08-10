@@ -14,13 +14,13 @@
 #'
 #' #### Important:
 #'
-#' **Names of the wave (baseline, week, two_months, etc)**
+#' - **Names of waves: baseline, week, two_months, six_months**
 #'
-#' **d = date, c = clean, so cd = clean date**
+#' - **Variables names: d = date, c = clean, so cd = clean date**
 #'
-#'**Start: release from prison**
+#' - **Start = release from prison**
 #'
-#' **Deadline: time threshold to compute a given response ratex**
+#' - **Deadline = time threshold to compute a given response rates**
 
 #+ setup, eval = FALSE, echo = FALSE
 knitr::opts_chunk$set(
