@@ -12,7 +12,7 @@ In this report, we estimate response rates using the following criteria:
 
 -   **Names of waves: baseline, week, two\_months, six\_months**
 
--   **d = date, c = clean, so cd = clean date**
+-   **Variables names: d = date, c = clean, so cd = clean date**
 
 -   **Start = release from prison**
 
@@ -57,7 +57,7 @@ ggplot(agg[!is.na(date)], aes(y = N, x = date)) +
   theme_minimal()
 ```
 
-![](attrition_files/figure-markdown_github-ascii_identifiers/define%20start%20date-1.png)
+![](plots/attrition-define%20start%20date-1.png)
 
 Dates by wave and response rates
 ================================
@@ -437,7 +437,7 @@ six_months_rate <- prop.table(tab)[2]
 Time of response
 ----------------
 
-![](attrition_files/figure-markdown_github-ascii_identifiers/plot%20time%20by%20application-1.png)
+![](plots/attrition-plot%20time%20by%20application-1.png)
 
 Summary response rates
 ----------------------
@@ -488,7 +488,7 @@ summary(unlist(fcases))
 ```
 
     ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-    ##     101     119     123     123     127     146
+    ##    96.0   118.0   123.0   122.9   127.0   145.0
 
 Cumulative response rate by the final wave:
 
@@ -497,7 +497,7 @@ summary(unlist(pcases))
 ```
 
     ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-    ##  0.4489  0.5289  0.5467  0.5468  0.5644  0.6489
+    ##  0.4267  0.5244  0.5467  0.5463  0.5644  0.6444
 
 Expected proportion of cases with 2 or more waves:
 
@@ -506,7 +506,7 @@ summary(unlist(fup))
 ```
 
     ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-    ##  0.6444  0.6800  0.6933  0.6927  0.7022  0.7467
+    ##  0.6311  0.6800  0.6933  0.6924  0.7022  0.7467
 
 Appendix
 ========

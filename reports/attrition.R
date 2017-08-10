@@ -22,7 +22,7 @@
 #'
 #' - **Deadline = time threshold to compute a given response rates**
 
-#+ setup, eval = FALSE, echo = FALSE
+#+ setup, eval =TRUE, echo = FALSE
 knitr::opts_chunk$set(
   fig.path = "plots/attrition-"
 )
