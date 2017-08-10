@@ -26,6 +26,7 @@ library(lme4)
 library(rstanarm)
 library(bayesplot)
 library(StanCat)
+library(psych)
 
 # clean date function
 cleanDates <- function(text) {
@@ -58,10 +59,48 @@ path <- "/Users/sdaza/Dropbox/Projects/re-entry/10 investigadores/sdaza/data/bas
 b <- as.data.table(read_stata(path))
 setnames(b, names(b), tolower(names(b)))
 
+names(b)
+lookvar(b, "138")
+table(b$p138_anos, useNA = "ifany")
+table(b$p138_dias, useNA = "ifany")
+table(b$p138_mese, useNA = "ifany")
+
 ovars <- c("folio_2", "p1", "p7", "p13", "p194", "p195")
 nvars <- c("id", "age", "edu", "kids", "fhealth", "mhealth")
 
 setnames(b, ovars, nvars)
+
+# mental health
+vars <- lookvar(b, "salud")
+b <- assmis(b, list(vars), list(c(8,9)))
+# f <- fa(b[, vars, with = FALSE], nfactors = 4)
+summary(psych::alpha(as.data.frame(b[, vars, with = FALSE])))
+
+b[, score_mh := rowscore(b, vars, type = "mean")]
+summary(b$score_mh)
+hist(b$score_mh)
+
+# interviewer assessment
+varnames <- names(b)
+tail(varnames, 50)
+
+vars <- lookvar(b, "evaluar")
+b <- assmis(b, list(vars), list(c(8,9)))
+b[, int_assessment := rowscore(b, vars, p = 0.01)]
+summary(b$int_assessment)
+
+table(b$evaluar_1, useNA = "ifany")
+table(b$evaluar_2, useNA = "ifany")
+table(b$evaluar_3, useNA = "ifany")
+table(b$evaluar_4, useNA = "ifany")
+
+# housing
+table(b$p36, useNA = "ifany")
+b <- assmis(b, list("p36"), list(c(8,9)))
+setnames(b, "p36", "residential_ins")
+
+# select variables
+nvars <- c("id", "age", "edu", "kids", "fhealth", "mhealth", "score_mh", "int_assessment", "residential_ins")
 b <- b[, ..nvars]
 
 # some descriptives
@@ -80,7 +119,7 @@ setnames(r, names(r), tolower(names(r)))
 # select variables
 setnames(r, c("fecha ingreso", "encuestadora final"), c("ad", "int"))
 r[, admission := cleanDates(ad)]
-svars <- c("id","int","admission","c1","c2","c3","c4","ndc1","ndc2","ndc3","ndc4","start","week","twomonths","sixmonths")
+svars <- c("id","int","admission","week","two_months","six_months")
 
 r <- r[, ..svars]
 
@@ -98,23 +137,27 @@ dat <- b[r]
 # dat[is.na(c1)]
 # dat[is.na(c2)]
 
+
 # assign missing data
 vars <- c("fhealth", "mhealth")
 dat <- assmis(dat, list(vars), list(c(8,9)))
 table(dat$fhealth, useNA = "ifany")
 
+prop.table(table(dat[is.na(int_assessment), week], useNA = "ifany")) # different groups
+prop.table(table(dat[!is.na(int_assessment), week], useNA = "ifany"))
+
 #'# Descriptives
 #' The total sample is `r nrow(dat)`.
 
 #+ descriptives
-summary(dat[, .(age, kids, edu, mhealth)])
+summary(dat[, .(age, kids, edu, mhealth, score_mh, int_assessment)])
 
 #'# Modeling response first week
 
 #'### Is variance of response explained by the Interviewer?
 #'
 #+ interviewers, warning = FALSE, message = FALSE,  results = "hide"
-fit1 <- stan_glmer(c2 ~+ (1|id_int),
+fit1 <- stan_glmer(week ~+ (1|id_int),
                    data = dat,  family = binomial(link = "logit"))
 stan_caterpillar(fit1, pars = "b\\[\\(Intercept\\) id_int\\:[0-9]\\]",
                  pars_label = paste0("Interviewer", 1:5))
@@ -123,8 +166,10 @@ stan_caterpillar(fit1, pars = "b\\[\\(Intercept\\) id_int\\:[0-9]\\]",
 #'
 #'### Predicting response using covariates
 #+ stan, warning = FALSE, message = FALSE,  results = "hide"
-fit1 <- stan_glmer(c2 ~ age + kids + edu +  mhealth + (1|id_int),
+fit1 <- stan_glmer(week ~ age + kids + edu +  score_mh +  residential_ins +  (1|id_int),
                    data = dat,  family = binomial(link = "logit"))
+
+summary(fit1)
 
 #+ explore model
 color_scheme_set("blue")
@@ -132,7 +177,7 @@ posterior <- as.matrix(fit1)
 plot_title <- ggtitle("Posterior distributions",
                       "with medians and 80% intervals")
 mcmc_areas(posterior,
-           pars = c("age", "kids", "edu", "mhealth"),
+           pars = c("age", "kids", "edu", "score_mh", "residential_ins"),
            prob = 0.8) + plot_title
 
 ppc_dens_overlay(y = fit1$y,
