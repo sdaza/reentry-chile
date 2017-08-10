@@ -1,12 +1,22 @@
 Response Rate Estimation, Chile Reentry Study
 ================
-August 09, 2017
+August 10, 2017
 
 In this report, we estimate response rates using the following criteria:
 
--   The estimation by wave only uses cases far beyond the wave-specific \#'observation window. For instance, for the wave *2-months*, we only con\#'sider \#'those women who have been in the study for 4 months.\#'
+-   The estimation by wave only uses cases far beyond the wave-specific observation window. For instance, for the wave *2-months*, we only con\#'sider \#'those women who have been in the study for 4 months.
 -   We use the observed response rates to simulate the final response rate of the study, and the rate 0.70 for the last wave (*one-year*).
 -   This estimation is based on the administrative records of the study.
+
+#### Important:
+
+**Names of the wave (baseline, week, two\_months, etc)**
+
+**d = date, c = clean, so cd = clean date**
+
+**Start: release from prison**
+
+**Deadline: time threshold to compute a given response ratex**
 
 Start date
 ==========
@@ -47,7 +57,7 @@ ggplot(agg[!is.na(date)], aes(y = N, x = date)) +
   theme_minimal()
 ```
 
-![](plots/attrition-define%20start%20date-1.png)
+![](attrition_files/figure-markdown_github-ascii_identifiers/define%20start%20date-1.png)
 
 Dates by wave and response rates
 ================================
@@ -60,9 +70,9 @@ Baseline
 ``` r
 # baseline response
 text <- lookvar(dat, "Sí: se realizó Línea base")
-setnames(dat, text, "c1")
-dat[, c1 := ifelse(grepl("^s", c1, ignore.case =  TRUE), 1, 0)]
-table(dat$c1, useNA = "ifany")
+setnames(dat, text, "baseline")
+dat[, baseline := ifelse(grepl("^s", baseline, ignore.case =  TRUE), 1, 0)]
+table(dat$baseline, useNA = "ifany")
 ```
 
     ## 
@@ -72,13 +82,13 @@ table(dat$c1, useNA = "ifany")
 ``` r
 # interview date
 text <- lookvar(dat, "FECHA ENTREVISTA.+Primera fecha")
-setnames(dat, text, "dc1")
+setnames(dat, text, "dbaseline")
 
-dat[, ndc1 := cleanDates(dc1)]
-dat[dc1 == "12-01.2017", ndc1 := as.Date("2017-01-12")]
-dat[dc1 == "V14 y M18/10", ndc1 := as.Date("2016-10-18")]
-dat[dc1 == "V16/12716", ndc1 := as.Date("2016-12-27")]
-summary(dat$ndc1)
+dat[, cdbaseline := cleanDates(dbaseline)] # corrected!
+dat[dbaseline == "12-01.2017", cdbaseline := as.Date("2017-01-12")]
+dat[dbaseline == "V14 y M18/10", cdbaseline := as.Date("2016-10-18")]
+dat[dbaseline == "V16/12716", cdbaseline := as.Date("2016-12-27")]
+summary(dat$cdbaseline)
 ```
 
     ##         Min.      1st Qu.       Median         Mean      3rd Qu. 
@@ -92,14 +102,15 @@ To check these cases:
 dat[, today := today()]
 
 # baseline time (in days) with respect to start
-t <- as.numeric(dat$ndc1 - dat$start) # difference
-Mean(t[t <= 0]) # in days
+t <- as.numeric(dat$cdbaseline - dat$start) # difference
+
+mean(t[t <= 0], na.rm = TRUE) # in days
 ```
 
     ## [1] -11.30986
 
 ``` r
-Min(t[t <= 0]) # is that possible?
+min(t[t <= 0], na.rm = TRUE) # is that possible?
 ```
 
     ## [1] -111
@@ -113,15 +124,23 @@ table(t > 0) # only few cases with positive numbers
     ##   213     5
 
 ``` r
-dat[t > 0, .(id, start, ndc1, dc1)]
+# check this! missing and inconsistent cases
+dat[t > 0 | is.na(cdbaseline), .(id, start, baseline, cdbaseline, dbaseline)]
 ```
 
-    ##       id      start       ndc1       dc1
-    ## 1: 50037 2016-10-19 2016-10-30     42673
-    ## 2: 20200 2016-12-21 2016-12-26     42730
-    ## 3: 10202 2016-01-01 2016-12-21     42725
-    ## 4: 30025 2016-01-05 2016-09-21     42634
-    ## 5: 40059 2016-10-17 2016-10-19 W19/10/16
+    ##        id      start baseline cdbaseline dbaseline
+    ##  1: 10293 2017-03-25        1       <NA>        NA
+    ##  2: 50037 2016-10-19        1 2016-10-30     42673
+    ##  3: 10285 2017-03-17        1       <NA>        NA
+    ##  4: 20200 2016-12-21        1 2016-12-26     42730
+    ##  5: 10272 2017-03-06        1       <NA>        NA
+    ##  6: 10288 2017-03-18        1       <NA>        NA
+    ##  7: 10202 2016-01-01        1 2016-12-21     42725
+    ##  8: 30025 2016-01-05        1 2016-09-21     42634
+    ##  9: 10291 2017-03-22        1       <NA>        NA
+    ## 10: 40059 2016-10-17        1 2016-10-19 W19/10/16
+    ## 11: 20120 2016-10-29        1       <NA>        NA
+    ## 12: 10282 2017-03-13        1       <NA>        NA
 
 First Week
 ----------
@@ -130,9 +149,9 @@ First Week
 
 ``` r
 # first week response
-setnames(dat, "PARTICIPA", "c2")
-dat[, c2 := ifelse(grepl("^s", c2, ignore.case =  TRUE), 1, 0)]
-table(dat$c2, useNA = "ifany")
+setnames(dat, "PARTICIPA", "week")
+dat[, week := ifelse(grepl("^s", week, ignore.case =  TRUE), 1, 0)]
+table(dat$week, useNA = "ifany")
 ```
 
     ## 
@@ -140,7 +159,7 @@ table(dat$c2, useNA = "ifany")
     ##  44 181
 
 ``` r
-prop.table(table(dat$c2, useNA = "ifany"))
+prop.table(table(dat$week, useNA = "ifany"))
 ```
 
     ## 
@@ -149,10 +168,10 @@ prop.table(table(dat$c2, useNA = "ifany"))
 
 ``` r
 # interview date
-setnames(dat, "FECHA ENTREVISTA", "dc2")
-dat[, ndc2 := cleanDates(dc2)]
-dat[dc2 == "S29/10 y W02/11", ndc2 := as.Date("2016-11-02")]
-summary(dat[c2 ==1, ndc2])
+setnames(dat, "FECHA ENTREVISTA", "dweek")
+dat[, cdweek := cleanDates(dweek)]
+dat[dweek == "S29/10 y W02/11", cdweek := as.Date("2016-11-02")]
+summary(dat[week ==1, cdweek])
 ```
 
     ##         Min.      1st Qu.       Median         Mean      3rd Qu. 
@@ -161,39 +180,50 @@ summary(dat[c2 ==1, ndc2])
     ## "2017-04-12"          "8"
 
 ``` r
-dat[, week := start +  (7 * 5)] # add 5 weeks to compute rate (not useful, just doing it for completeness)
-t <- as.numeric((dat$ndc2 - dat$start)/7) # difference in weeks
+dat[, deadline_week := start +  (7 * 5)] # add 5 weeks to compute rate (not useful, just doing it for completeness)
 
-Mean(t[t>0])
+# difference between first week and start
+t <- as.numeric((dat$cdweek - dat$start)/7)
+
+mean(t[t>0], na.rm = TRUE)
 ```
 
     ## [1] 1.950972
 
 ``` r
-Max(t[t>0])  # is this right?
+max(t[t>0], na.rm = TRUE)  # is this right?
 ```
 
     ## [1] 53.28571
 
 ``` r
-Min(t[t>0])
+min(t[t>0], na.rm = TRUE)
 ```
 
     ## [1] 0.1428571
 
 ``` r
-dat[t <= 0, .(id, start, ndc2, dc2)] # check these cases
+# check this! missing and inconsistent cases
+dat[week == 1 & (t <= 0 | is.na(cdweek)), .(id, start, week,  cdweek, dweek)] # check these cases
 ```
 
-    ##       id      start       ndc2   dc2
-    ## 1: 50242 2017-02-02 2017-01-21 42756
-    ## 2: 20032 2016-10-16 2016-10-12 42655
-    ## 3: 20229 2017-01-18 2017-01-07 42742
-    ## 4: 20071 2016-10-18 2016-10-13 42656
-    ## 5: 50249 2017-02-09 2017-01-22 42757
+    ##        id      start week     cdweek dweek
+    ##  1: 50242 2017-02-02    1 2017-01-21 42756
+    ##  2: 20081 2016-10-19    1       <NA>    NA
+    ##  3: 20032 2016-10-16    1 2016-10-12 42655
+    ##  4: 20229 2017-01-18    1 2017-01-07 42742
+    ##  5: 50271 2017-03-06    1       <NA>    NA
+    ##  6: 20071 2016-10-18    1 2016-10-13 42656
+    ##  7: 10285 2017-03-17    1       <NA>    NA
+    ##  8: 50276 2017-03-08    1       <NA>    NA
+    ##  9: 10272 2017-03-06    1       <NA>    NA
+    ## 10: 20142 2016-11-15    1       <NA>    NA
+    ## 11: 10288 2017-03-18    1       <NA>    NA
+    ## 12: 20261 2017-02-19    1       <NA>    NA
+    ## 13: 50249 2017-02-09    1 2017-01-22 42757
 
 ``` r
-(tab <- table(dat[today > week | c2 == 1, c2])) # all the sample
+(tab <- table(dat[today > week | week == 1, week])) # all the sample
 ```
 
     ## 
@@ -209,7 +239,7 @@ prop.table(tab)
     ## 0.1955556 0.8044444
 
 ``` r
-rate2 <- prop.table(tab)[2]
+week_rate <- prop.table(tab)[2]
 ```
 
 Two months
@@ -219,9 +249,9 @@ Two months
 
 ``` r
 # two months response
-setnames(dat, "PARTICIPA__1", "c3")
-dat[, c3 := ifelse(grepl("^s", c3, ignore.case =  TRUE), 1, 0)]
-table(dat$c3, useNA = "ifany")
+setnames(dat, "PARTICIPA__1", "two_months")
+dat[, two_months := ifelse(grepl("^s", two_months, ignore.case =  TRUE), 1, 0)]
+table(dat$two_months, useNA = "ifany")
 ```
 
     ## 
@@ -229,7 +259,7 @@ table(dat$c3, useNA = "ifany")
     ##  50 175
 
 ``` r
-prop.table(table(dat$c3, useNA = "ifany"))
+prop.table(table(dat$two_months, useNA = "ifany"))
 ```
 
     ## 
@@ -238,11 +268,11 @@ prop.table(table(dat$c3, useNA = "ifany"))
 
 ``` r
 # interview date
-setnames(dat, "FECHA ENTREVISTA__1", "dc3")
-dat[, ndc3 := cleanDates(dc3)]
-dat[dc3 == "13-0-2017", ndc3 := as.Date("2017-04-13")] # I guess!
-dat[dc3 == "27/2", ndc3 := as.Date("2017-02-27")]
-summary(dat[c3 == 1, ndc3])
+setnames(dat, "FECHA ENTREVISTA__1", "dtwo_months")
+dat[, cdtwo_months := cleanDates(dtwo_months)]
+dat[dtwo_months == "13-0-2017", cdtwo_months := as.Date("2017-04-13")] # I guess!
+dat[dtwo_months == "27/2", cdtwo_months := as.Date("2017-02-27")]
+summary(dat[two_months == 1, cdtwo_months])
 ```
 
     ##         Min.      1st Qu.       Median         Mean      3rd Qu. 
@@ -251,42 +281,51 @@ summary(dat[c3 == 1, ndc3])
     ## "2017-07-13"          "8"
 
 ``` r
-t <- as.numeric((dat$ndc3 - dat$start) / 30.5) # in months
+# difference between two months and start
+t <- as.numeric((dat$cdtwo_months - dat$start) / 30.5) # in months
 
-Mean(t[t>0])
+mean(t[t>0], na.rm = TRUE)
 ```
 
     ## [1] 2.316876
 
 ``` r
-Max(t[t>0])  # 4 months?
+max(t[t>0], na.rm = TRUE)  # 4 months?
 ```
 
     ## [1] 4.491803
 
 ``` r
-Min(t[t>0])
+min(t[t>0], na.rm= TRUE)
 ```
 
     ## [1] 0.3278689
 
 ``` r
-dat[t < 0, .(id, start, ndc3,dc3)]
+# check this! missing and inconsistent cases
+dat[two_months == 1 & (t < 0 | is.na(cdtwo_months)) , .(id, start, two_months, cdtwo_months, dtwo_months)]
 ```
 
-    ##       id      start       ndc3   dc3
-    ## 1: 50104 2016-10-25 2016-10-24 42667
+    ##       id      start two_months cdtwo_months dtwo_months
+    ## 1: 20081 2016-10-19          1         <NA>          NA
+    ## 2: 20095 2016-12-07          1         <NA>          NA
+    ## 3: 10099 2016-12-20          1         <NA>          NA
+    ## 4: 10187 2016-12-16          1         <NA>          NA
+    ## 5: 50104 2016-10-25          1   2016-10-24       42667
+    ## 6: 30178 2016-12-06          1         <NA>          NA
+    ## 7: 10244 2017-02-04          1         <NA>          NA
+    ## 8: 10213 2017-01-08          1         <NA>          NA
+    ## 9: 10228 2017-01-18          1         <NA>          NA
 
 ``` r
-dat[, twomonths := start + 30.5 * 4] # add 4 months
-
-length(dat[today > twomonths | c3 == 1, c3]) # almost all!
+dat[, deadline_two_months := start + 30.5 * 4] # add 4 months
+length(dat[today > deadline_two_months | two_months == 1, deadline_two_months]) # all of them!
 ```
 
     ## [1] 225
 
 ``` r
-(tab <- table(dat[today > twomonths | c3 == 1, c3]))
+(tab <- table(dat[today > deadline_two_months | two_months == 1, two_months]))
 ```
 
     ## 
@@ -302,7 +341,7 @@ prop.table(tab)
     ## 0.2222222 0.7777778
 
 ``` r
-rate3 <- prop.table(tab)[2]
+two_months_rate <- prop.table(tab)[2]
 ```
 
 Six months
@@ -312,9 +351,9 @@ Six months
 
 ``` r
 # six months response
-setnames(dat, "PARTICIPA__2", "c4")
-dat[, c4 := ifelse(grepl("^s", c4, ignore.case =  TRUE), 1, 0)]
-table(dat$c4, useNA = "ifany")
+setnames(dat, "PARTICIPA__2", "six_months")
+dat[, six_months := ifelse(grepl("^s", six_months, ignore.case =  TRUE), 1, 0)]
+table(dat$six_months, useNA = "ifany")
 ```
 
     ## 
@@ -322,7 +361,7 @@ table(dat$c4, useNA = "ifany")
     ## 101 124
 
 ``` r
-prop.table(table(dat$c4, useNA = "ifany"))
+prop.table(table(dat$six_months, useNA = "ifany"))
 ```
 
     ## 
@@ -331,11 +370,11 @@ prop.table(table(dat$c4, useNA = "ifany"))
 
 ``` r
 # interview date
-setnames(dat, "FECHA ENTREVISTA__2", "dc4")
-dat[, ndc4 := cleanDates(dc4)]
-dat[ndc4 == "0207-05-15", ndc4 := as.Date("2017-05-15")]
-dat[ndc4 == "3017-04-24 ", ndc4 := as.Date("2017-04-24 ")]
-summary(dat[c4 == 1, ndc4])
+setnames(dat, "FECHA ENTREVISTA__2", "dsix_months")
+dat[, cdsix_months := cleanDates(dsix_months)]
+dat[cdsix_months == "0207-05-15", cdsix_months := as.Date("2017-05-15")]
+dat[cdsix_months == "3017-04-24 ", cdsix_months := as.Date("2017-04-24 ")]
+summary(dat[six_months == 1, cdsix_months])
 ```
 
     ##         Min.      1st Qu.       Median         Mean      3rd Qu. 
@@ -344,57 +383,61 @@ summary(dat[c4 == 1, ndc4])
     ## "2017-07-14"          "3"
 
 ``` r
-t <- as.numeric((dat$ndc4 - dat$start) / 30.5)
+t <- as.numeric((dat$cdsix_months - dat$start) / 30.5)
 
-Mean(t[t>0])
+mean(t[t>0], na.rm = TRUE)
 ```
 
     ## [1] 6.203171
 
 ``` r
-Max(t[t>0])
+max(t[t>0], na.rm = TRUE)
 ```
 
     ## [1] 9.016393
 
 ``` r
-Min(t[t>0]) # 4 months, really?
+min(t[t>0], na.rm = TRUE) # 4 months, really?
 ```
 
     ## [1] 4.459016
 
 ``` r
-dat[t < 0, .(id, start, ndc1, ndc2, ndc3, ndc4)]
+# check this! missing cases
+dat[six_months == 1 & (t < 0 | is.na(cdsix_months)), .(id, start, six_months, cdsix_months, dsix_months)]
 ```
 
-    ## Empty data.table (0 rows) of 6 cols: id,start,ndc1,ndc2,ndc3,ndc4
+    ##       id      start six_months cdsix_months dsix_months
+    ## 1: 50126 2016-12-07          1         <NA>          NA
+    ## 2: 10007 2016-09-20          1         <NA>          NA
+    ## 3: 50231 2017-01-22          1         <NA>          NA
 
 ``` r
-dat[, sixmonths := start + 30.5 * 8] # add 8 months
+dat[, deadline_six_months := start + 30.5 * 8] # add 8 months
 
-(tab <- table(dat[today > sixmonths, c4]))
+(tab <- table(dat[today > deadline_six_months, six_months]))
 ```
 
     ## 
     ##  0  1 
-    ## 31 96
+    ## 32 96
 
 ``` r
 prop.table(tab)
 ```
 
     ## 
-    ##         0         1 
-    ## 0.2440945 0.7559055
+    ##    0    1 
+    ## 0.25 0.75
 
 ``` r
-rate4 <- prop.table(tab)[2]
+six_months_rate <- prop.table(tab)[2]
 ```
 
 Time of response
 ----------------
 
-![](plots/attrition-plot%20time%20by%20application-1.png)
+![](attrition_files/figure-markdown_github-ascii_identifiers/plot%20time%20by%20application-1.png)
 
 Summary response rates
 ----------------------
@@ -402,11 +445,11 @@ Summary response rates
 From first week to six months.
 
 ``` r
-cbind(rate2, rate3, rate4)
+cbind(week_rate, two_months_rate, six_months_rate)
 ```
 
-    ##       rate2     rate3     rate4
-    ## 1 0.8044444 0.7777778 0.7559055
+    ##   week_rate two_months_rate six_months_rate
+    ## 1 0.8044444       0.7777778            0.75
 
 Simulate final response rate
 ----------------------------
@@ -417,22 +460,22 @@ All the effort should be put during these last waves!
 fcases <- list()
 pcases <- list()
 fup <- list()
-
+i <- 1
 for (i in 1:1000) {
 
-  dat[today < sixmonths & c4 != 1, c4_s := ifelse(runif(.N) < rate4, 1, 0)]
-  dat[c4 == 1, c4_s := 1]
-  dat[is.na(c4_s), c4_s := c4]
+  dat[today < deadline_six_months & six_months != 1, six_months_s := ifelse(runif(.N) < six_months_rate, 1, 0)]
+  dat[six_months == 1, six_months_s := 1]
+  dat[is.na(six_months_s), six_months_s := six_months]
 
-  dat[, c5_s := 0]
-  dat[c4_s == 1, c5_s := ifelse(runif(.N) < .70, 1, 0)] # using rate .70
-  fcases[[i]] <- table(dat$c5_s)[2]
-  pcases[[i]] <- prop.table(table(dat$c5_s))[2] # respect to the total
+  dat[, year_s := 0]
+  dat[six_months_s == 1, year_s := ifelse(runif(.N) < .70, 1, 0)] # using rate .70
+  fcases[[i]] <- table(dat$year_s)[2]
+  pcases[[i]] <- prop.table(table(dat$year_s))[2] # respect to the total
 
-  agg <- dat[, .N, .(c1,c2,c3,c4_s,c5_s)]
+  agg <- dat[, .N, .(baseline,week,two_months,six_months_s,year_s)]
   s <- sum(agg$N)
   agg[, prop := N / sum(N)]
-  agg[, followups := apply(.SD, 1, sum), .SDcols = c("c2", "c3", "c4_s","c5_s")]
+  agg[, followups := apply(.SD, 1, sum), .SDcols = c("week", "two_months", "six_months_s","year_s")]
   fup[[i]] <- agg[followups > 2, sum(N)]/ s
 
 }
@@ -445,7 +488,7 @@ summary(unlist(fcases))
 ```
 
     ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-    ##   103.0   119.0   124.0   123.3   128.0   141.0
+    ##   101.0   119.0   123.0   123.1   127.0   141.0
 
 Cumulative response rate by the final wave:
 
@@ -454,7 +497,7 @@ summary(unlist(pcases))
 ```
 
     ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-    ##  0.4578  0.5289  0.5511  0.5480  0.5689  0.6267
+    ##  0.4489  0.5289  0.5467  0.5471  0.5644  0.6267
 
 Expected proportion of cases with 2 or more waves:
 
@@ -463,16 +506,16 @@ summary(unlist(fup))
 ```
 
     ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-    ##  0.6356  0.6844  0.6933  0.6941  0.7067  0.7556
+    ##  0.6444  0.6800  0.6933  0.6918  0.7022  0.7378
 
-Appendix
+Appecdix
 ========
 
 Function to clean dates
 -----------------------
 
 ``` r
-cleanDates <- function(text) {
+cleacdates <- function(text) {
 
   a <- data.table(text)
   a[, temp := str_extract(text, "([0-9]+/[0-9]+/[0-9]+)|([0-9]+-[0-9]+-[0-9]+)")]
@@ -491,8 +534,8 @@ cleanDates <- function(text) {
 
   a[month %in% c(9:12), year := 2016]
   a[month %in% c(1:8), year := 2017]
-  suppressWarnings(a[, nd := ymd(paste(yeıar, month, day, sep= "-"))])
+  suppressWarnings(a[, cd := ymd(paste(yeıar, month, day, sep= "-"))])
 
-  return(a$nd)
+  return(a$cd)
 }
 ```
