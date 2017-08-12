@@ -169,7 +169,7 @@ r <- r[, ..svars]
 r[, id_int := .GRP, int]
 table(r$id_int, useNA = "ifany")
 
-#+ merge data, eval = TRUE, include = FALSE, warning = FALSE
+#+ merge data, eval = TRUE, include = TRUE, warning = FALSE
 setkey(b, id); setkey(r, id)
 dat <- b[r]
 

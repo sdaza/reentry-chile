@@ -237,6 +237,21 @@ table(r$id_int, useNA = "ifany")
     ##  1  2  3  4  5 
     ## 33 59 58 58 17
 
+``` r
+setkey(b, id); setkey(r, id)
+dat <- b[r]
+
+# recode some variables for models
+dat[, missing_week := ifelse(week == 1, 0, 1)]
+dat[, missing_twomonths := ifelse(two_months == 1, 0, 1)]
+dat[, log_sentence_time := scale(log(sentence_time + 0.01), center = TRUE, scale = FALSE)]
+dat[, z_age := scale(age)]
+dat[, z_mental_health_score := scale(mental_health_score)]
+dat[, z_residential_instability := scale(residential_instability)]
+dat[, crime := factor(crime, labels = c("robbery + others", "theft", "drugs"))]
+# dat[, crime := relevel(crime, ref = c("drugs"))]
+```
+
 Descriptives
 ============
 
