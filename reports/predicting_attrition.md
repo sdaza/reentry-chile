@@ -238,6 +238,7 @@ table(r$id_int, useNA = "ifany")
     ## 33 59 58 58 17
 
 ``` r
+# merge cases and standardize some variables
 setkey(b, id); setkey(r, id)
 dat <- b[r]
 

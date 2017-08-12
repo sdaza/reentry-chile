@@ -170,6 +170,7 @@ r[, id_int := .GRP, int]
 table(r$id_int, useNA = "ifany")
 
 #+ merge data, eval = TRUE, include = TRUE, warning = FALSE
+# merge cases and standardize some variables
 setkey(b, id); setkey(r, id)
 dat <- b[r]
 
