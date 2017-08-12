@@ -29,6 +29,7 @@ library(rstanarm)
 library(bayesplot)
 library(StanCat)
 library(psych)
+library(brms)
 
 # clean date function
 cleanDates <- function(text) {
@@ -197,9 +198,11 @@ summary(dat[, .(age, any_kids, edu12, mental_health_score, residential_instabili
 #'### Is variance of response explained by interviewers?
 #'
 #+ interviewers first week, warning = FALSE, message = FALSE,  results = "hide"
-fit1 <- stan_glmer(missing_week ~+ (1|id_int),
-                   data = dat,  family = binomial(link = "logit"))
-stan_caterpillar(fit1, pars = "b\\[\\(Intercept\\) id_int\\:[0-9]\\]",
+fit1 <- brm(missing_week ~+ (1|id_int),
+                   data = dat,  family = bernoulli(link = "logit"),
+                    control= list(adapt_delta=.99))
+
+stan_caterpillar(fit1, pars = "^r",
                  pars_label = paste0("Interviewer", 1:5))
 
 #'It doesn't seem to be the case!
@@ -207,10 +210,20 @@ stan_caterpillar(fit1, pars = "b\\[\\(Intercept\\) id_int\\:[0-9]\\]",
 #' ### Predicting first week non-response using covariates
 #'
 #+ stan first week, warning = FALSE, message = FALSE,  results = "hide"
-fit1 <- stan_glmer(missing_week ~ z_age + any_kids + edu12 + z_mental_health_score +
+
+fit1 <- brm(missing_week ~ z_age + any_kids + edu12 + z_mental_health_score +
                    z_residential_instability + employment + hard_drugs + crime +
                     log_sentence_time + (1|id_int),
-                   data = dat,  family = binomial(link = "logit"), adapt_delta = 0.99)
+                   data = dat,  family = bernoulli(link = "logit"),
+                    control= list(adapt_delta=.99))
+
+# pp_check(fit1)
+
+
+# fit1 <- stan_glmer(missing_week ~ z_age + any_kids + edu12 + z_mental_health_score +
+                   # z_residential_instability + employment + hard_drugs + crime +
+                    # log_sentence_time + (1|id_int),
+                   # data = dat,  family = binomial(link = "logit"), adapt_delta = 0.99)
 
 
 # create plot
@@ -227,6 +240,13 @@ mcmc_areas(posterior,
                     "log_sentence_time", "crime"),
            prob = 0.8) + plot_title
 
+#' ### Marginal effects
+#'
+#+ marginal effects week, warning = FALSE, message = FALSE,  results = "hide"
+eff <- c("z_age", "z_residential_instability", "employment")
+plot(marginal_effects(fit1, effects = eff, re_formula = NA, spaghetti = FALSE),
+  points = TRUE, jitter_width = 0, ask = FALSE)
+
 #' Age, employment and residential stability seem to be key factors here.
 #'
 #' # Modeling Non-response: Two months
@@ -236,21 +256,22 @@ mcmc_areas(posterior,
 #' This time there is more variability by interviewer.
 #'
 #+ interviewers two months, warning = FALSE, message = FALSE,  results = "hide"
-fit1 <- stan_glmer(missing_twomonths ~+ (1|id_int),
-                   data = dat,  family = binomial(link = "logit"))
+fit1 <- brm(missing_twomonths ~+ (1|id_int),
+                   data = dat,  family = bernoulli(link = "logit"),
+                   control= list(adapt_delta=.99) )
 
-summary(fit1)
-stan_caterpillar(fit1, pars = "b\\[\\(Intercept\\) id_int\\:[0-9]\\]",
+stan_caterpillar(fit1, pars = "^r",
                  pars_label = paste0("Interviewer", 1:5))
+
 
 #'### Predicting two-months non-response using covariates
 #+ stan two months, warning = FALSE, message = FALSE,  results = "hide"
-fit1 <- stan_glmer(missing_twomonths ~ z_age + any_kids + edu12 +  z_mental_health_score +
+fit1 <- brm(missing_twomonths ~ z_age + any_kids + edu12 +  z_mental_health_score +
                    z_residential_instability + employment + hard_drugs
-                   + crime + log_sentence_time +
-                   + (1|id_int),
-                   data = dat,  family = binomial(link = "logit"), adapt_delta = 0.99)
-
+                   + crime + log_sentence_time + (1|id_int),
+                   data = dat,  family = bernoulli(link = "logit"),
+                   control= list(adapt_delta=.99))
+summary(fit1)
 # create plot
 posterior <- as.matrix(fit1)
 
@@ -258,12 +279,18 @@ plot_title <- ggtitle("Posterior distributions Predicting Two Months Non-Respons
                       "with medians and 80% intervals")
 
 # mcmc_areas(posterior) + plot_title
-
 mcmc_areas(posterior,
            regex_pars = c("z_age", "any_kids", "edu12", "z_mental_health_score",
                     "z_residential_instability", "employment", "hard_drugs",
                     "log_sentence_time", "crime"),
            prob = 0.8) + plot_title
+
+#' ### Marginal effects
+#'
+#+ marginal effects two months, warning = FALSE, message = FALSE,  results = "hide"
+eff <- c("z_age", "z_residential_instability", "employment")
+plot(marginal_effects(fit1, effects = eff, re_formula = NA, spaghetti = FALSE),
+  points = TRUE, jitter_width = 0, ask = FALSE)
 
 #' Same patterns, although noisier estimates.
 #' Non-response, as expected, is not random and we will need to correct potential biases
