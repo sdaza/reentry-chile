@@ -193,7 +193,7 @@ summary(dat[, .(age, any_kids, edu12, mental_health_score, residential_instabili
 
 #'# Modeling non-response: First week
 #'
-#'I show here Bayesian logistic random models where the group variable is the interviewer.
+#' I estimate Bayesian logistic random models with the variable `interviewer` as random effect.
 #'
 #'### Is variance of response explained by interviewers?
 #'

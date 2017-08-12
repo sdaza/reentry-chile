@@ -39,8 +39,8 @@ b[, any_kids := ifelse(kids > 0, 1, 0)]
 table(dat$s_mental_heath, useNA = "ifany")
 ```
 
-    ## 
-    ##    1    2    3    4    5 <NA> 
+    ##
+    ##    1    2    3    4    5 <NA>
     ##   26  132   47   16    2    4
 
 ``` r
@@ -49,8 +49,8 @@ b[, edu12 := ifelse(edu >= 12, 1, 0)] # cuarto medio +
 table(b$edu12, useNA = "ifany")
 ```
 
-    ## 
-    ##   0   1 
+    ##
+    ##   0   1
     ## 161  66
 
 ``` r
@@ -61,8 +61,8 @@ b <- assmis(b, list(vars), list(c(8,9)))
 summary(psych::alpha(as.data.frame(b[, vars, with = FALSE])))
 ```
 
-    ## 
-    ## Reliability analysis   
+    ##
+    ## Reliability analysis
     ##  raw_alpha std.alpha G6(smc) average_r S/N    ase mean   sd
     ##       0.96      0.96    0.98      0.23  26 0.0035  1.1 0.66
 
@@ -71,7 +71,7 @@ b[, mental_health_score := rowscore(b, vars, type = "mean")]
 summary(b$mental_health_score)
 ```
 
-    ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA's 
+    ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA's
     ##  0.0000  0.6374  0.9719  1.0734  1.4326  3.7191       1
 
 ``` r
@@ -88,7 +88,7 @@ b[, interviewer_assessment := rowscore(b, vars, p = 0.01)]
 summary(b$interviewer_assessment)
 ```
 
-    ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA's 
+    ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA's
     ##   1.250   3.000   3.750   3.482   4.000   4.000       9
 
 ``` r
@@ -96,8 +96,8 @@ summary(b$interviewer_assessment)
 table(b$p36, useNA = "ifany")
 ```
 
-    ## 
-    ##   1   2   3   4   9 
+    ##
+    ##   1   2   3   4   9
     ## 167  42   9   8   1
 
 ``` r
@@ -109,8 +109,8 @@ b[, employment := rowscore(b, c("p173", "p181"), type = "any", val = 1)]
 table(b$employment)
 ```
 
-    ## 
-    ##   0   1 
+    ##
+    ##   0   1
     ## 116 111
 
 ``` r
@@ -128,8 +128,8 @@ b <- assmis(b, list("p210"), list(c(8,9)))
 table(b$p210,  useNA = "ifany")
 ```
 
-    ## 
-    ##    0    1 <NA> 
+    ##
+    ##    0    1 <NA>
     ##   99  126    2
 
 ``` r
@@ -137,8 +137,8 @@ setnames(b, "p210", "drug_use_issues")
 table(b$drug_use_issues, useNA = "ifany")
 ```
 
-    ## 
-    ##    0    1 <NA> 
+    ##
+    ##    0    1 <NA>
     ##   99  126    2
 
 ``` r
@@ -148,8 +148,8 @@ b[, hard_drugs := as.numeric(p212_2_d %in% c(1,2) | p212_2_e %in% c(1,2))]
 table(b$hard_drugs, useNA = "ifany")
 ```
 
-    ## 
-    ##   0   1 
+    ##
+    ##   0   1
     ## 157  70
 
 ``` r
@@ -157,8 +157,8 @@ table(b$hard_drugs, useNA = "ifany")
 table(b$p262, useNA = "ifany")
 ```
 
-    ## 
-    ##   1   2   3   4   8   9 
+    ##
+    ##   1   2   3   4   8   9
     ##  36  39  40 110   1   1
 
 ``` r
@@ -167,8 +167,8 @@ b <- revscale(b, "p262", "expect_crime")
 table(b$expect_crime, useNA = "ifany")
 ```
 
-    ## 
-    ##    1    2    3    4 <NA> 
+    ##
+    ##    1    2    3    4 <NA>
     ##  110   40   39   36    2
 
 ``` r
@@ -176,8 +176,8 @@ table(b$expect_crime, useNA = "ifany")
 table(b$p137, useNA = "ifany")
 ```
 
-    ## 
-    ##  1  2  3  5  7  8  9 10 11 12 13 15 16 17 18 19 22 24 99 
+    ##
+    ##  1  2  3  5  7  8  9 10 11 12 13 15 16 17 18 19 22 24 99
     ##  3  4  5  1 87  1  9 11 11  1  4 37 44  1  3  1  1  2  1
 
 ``` r
@@ -188,16 +188,16 @@ b[p137 %in% c(12:14, 17:24), crime := 1] # other
 table(b$crime, useNA = "ifany")
 ```
 
-    ## 
-    ##    1    2    3 <NA> 
+    ##
+    ##    1    2    3 <NA>
     ##   58   87   81    1
 
 ``` r
 prop.table(table(b$crime, useNA = "ifany"))
 ```
 
-    ## 
-    ##           1           2           3        <NA> 
+    ##
+    ##           1           2           3        <NA>
     ## 0.255506608 0.383259912 0.356828194 0.004405286
 
 ``` r
@@ -233,8 +233,8 @@ r[, id_int := .GRP, int]
 table(r$id_int, useNA = "ifany")
 ```
 
-    ## 
-    ##  1  2  3  4  5 
+    ##
+    ##  1  2  3  4  5
     ## 33 59 58 58 17
 
 ``` r
@@ -263,26 +263,26 @@ summary(dat[, .(age, any_kids, edu12, mental_health_score, residential_instabili
 ```
 
     ##       age           any_kids          edu12        mental_health_score
-    ##  Min.   :19.00   Min.   :0.0000   Min.   :0.0000   Min.   :0.0000     
-    ##  1st Qu.:27.00   1st Qu.:1.0000   1st Qu.:0.0000   1st Qu.:0.6346     
-    ##  Median :34.00   Median :1.0000   Median :0.0000   Median :0.9719     
-    ##  Mean   :36.12   Mean   :0.8933   Mean   :0.2889   Mean   :1.0703     
-    ##  3rd Qu.:42.00   3rd Qu.:1.0000   3rd Qu.:1.0000   3rd Qu.:1.4213     
-    ##  Max.   :68.00   Max.   :1.0000   Max.   :1.0000   Max.   :3.7191     
-    ##                                                    NA's   :1          
+    ##  Min.   :19.00   Min.   :0.0000   Min.   :0.0000   Min.   :0.0000
+    ##  1st Qu.:27.00   1st Qu.:1.0000   1st Qu.:0.0000   1st Qu.:0.6346
+    ##  Median :34.00   Median :1.0000   Median :0.0000   Median :0.9719
+    ##  Mean   :36.12   Mean   :0.8933   Mean   :0.2889   Mean   :1.0703
+    ##  3rd Qu.:42.00   3rd Qu.:1.0000   3rd Qu.:1.0000   3rd Qu.:1.4213
+    ##  Max.   :68.00   Max.   :1.0000   Max.   :1.0000   Max.   :3.7191
+    ##                                                    NA's   :1
     ##  residential_instability
-    ##  Min.   :1.000          
-    ##  1st Qu.:1.000          
-    ##  Median :1.000          
-    ##  Mean   :1.366          
-    ##  3rd Qu.:2.000          
-    ##  Max.   :4.000          
+    ##  Min.   :1.000
+    ##  1st Qu.:1.000
+    ##  Median :1.000
+    ##  Mean   :1.366
+    ##  3rd Qu.:2.000
+    ##  Max.   :4.000
     ##  NA's   :1
 
 Modeling non-response: First week
 =================================
 
-I show here Bayesian logistic random models where the group variable is the interviewer.
+I estimate Bayesian logistic random models with the variable `interviewer` as random effect.
 
 ### Is variance of response explained by interviewers?
 
