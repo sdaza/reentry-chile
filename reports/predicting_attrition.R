@@ -191,8 +191,8 @@ summary(dat[, .(age, any_kids, edu12, mental_health_score, residential_instabili
 
 #'# Modeling non-response: First week
 #'
-#' The models I show here are Bayesian logistic random models (group variable = interviewer).
-
+#'I show here Bayesian logistic random models where the group variable is the interviewer.
+#'
 #'### Is variance of response explained by interviewers?
 #'
 #+ interviewers first week, warning = FALSE, message = FALSE,  results = "hide"
@@ -203,7 +203,7 @@ stan_caterpillar(fit1, pars = "b\\[\\(Intercept\\) id_int\\:[0-9]\\]",
 
 #'It doesn't seem to be the case!
 #'
-#' ### Predicting non-response using covariates
+#' ### Predicting first week non-response using covariates
 #'
 #+ stan first week, warning = FALSE, message = FALSE,  results = "hide"
 fit1 <- stan_glmer(missing_week ~ z_age + any_kids + edu12 + z_mental_health_score +
@@ -242,7 +242,7 @@ summary(fit1)
 stan_caterpillar(fit1, pars = "b\\[\\(Intercept\\) id_int\\:[0-9]\\]",
                  pars_label = paste0("Interviewer", 1:5))
 
-#'### Predicting non-response using covariates
+#'### Predicting two-months non-response using covariates
 #+ stan two months, warning = FALSE, message = FALSE,  results = "hide"
 fit1 <- stan_glmer(missing_twomonths ~ z_age + any_kids + edu12 +  z_mental_health_score +
                    z_residential_instability + employment + hard_drugs

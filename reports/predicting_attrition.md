@@ -1,6 +1,6 @@
 Modeling Attrition , Chile Reentry Study
 ================
-August 11, 2017
+August 12, 2017
 
 We use the baseline dataset to explore which factors seems to predict attrition, and to identify potential biases of the data.
 
@@ -266,7 +266,9 @@ summary(dat[, .(age, any_kids, edu12, mental_health_score, residential_instabili
 Modeling non-response: First week
 =================================
 
-The models I show here are Bayesian logistic random models (group variable = interviewer). \#\#\# Is variance of response explained by interviewers?
+I show here Bayesian logistic random models where the group variable is the interviewer.
+
+### Is variance of response explained by interviewers?
 
 ``` r
 fit1 <- stan_glmer(missing_week ~+ (1|id_int),
@@ -279,7 +281,7 @@ stan_caterpillar(fit1, pars = "b\\[\\(Intercept\\) id_int\\:[0-9]\\]",
 
 It doesn't seem to be the case!
 
-### Predicting non-response using covariates
+### Predicting first week non-response using covariates
 
 ``` r
 fit1 <- stan_glmer(missing_week ~ z_age + any_kids + edu12 + z_mental_health_score +
@@ -325,7 +327,7 @@ stan_caterpillar(fit1, pars = "b\\[\\(Intercept\\) id_int\\:[0-9]\\]",
 
 ![](plots/predict-attrition-interviewers%20two%20months-1.png)
 
-### Predicting non-response using covariates
+### Predicting two-months non-response using covariates
 
 ``` r
 fit1 <- stan_glmer(missing_twomonths ~ z_age + any_kids + edu12 +  z_mental_health_score +
