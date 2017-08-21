@@ -5,6 +5,4 @@ The re-entry study is an intensive longitudinal project that follows more than 2
 In this repository, we publish preliminary and descriptive analysis of the study.
 
 - **[Response Rate Estimation](http://nbviewer.jupyter.org/github/sdaza/reentry-chile/blob/36a38eb18d73216cd4918f7da9ea554b84b47613/reports/reentry_chile_response_rates.ipynb)**
-
-<!-- - **[Characterizing Attrition](reports/predicting_attrition.md)** -->
 - **[Slides presentation by Pilar Larroulet, August 2017 (Spanish)](reports/isuc_08_2017.pdf)**
