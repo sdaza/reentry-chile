@@ -6,5 +6,5 @@ In this repository, we publish preliminary and descriptive analysis of the study
 
 - **[Response Rate Estimation](http://nbviewer.jupyter.org/github/sdaza/reentry-chile/blob/36a38eb18d73216cd4918f7da9ea554b84b47613/reports/reentry_chile_response_rates.ipynb)**
 - **[Modeling Response](http://nbviewer.jupyter.org/github/sdaza/reentry-chile/blob/1a91da2b7d0e312928c7a1910a6418126cc5de7b/reports/predicting_response_rate.ipynb)**
-- **[First week](http://nbviewer.jupyter.org/github/sdaza/reentry-chile/blob/f39636500f3c17b89c98ed373c856975ac055355/reports/exploring_first_week.ipynb)**
+- **[First week](http://nbviewer.jupyter.org/github/sdaza/reentry-chile/blob/1f56a1897d96d9b0a4754349634d1d7974a1f8fe/reports/exploring_first_week.ipynb)**
 - **[Slides presentation by Pilar Larroulet, August 2017 (Spanish)](reports/isuc_08_2017.pdf)**
