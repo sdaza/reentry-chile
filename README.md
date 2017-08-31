@@ -4,7 +4,7 @@ The re-entry study is an intensive longitudinal project that follows more than 2
 
 In this repository, we publish preliminary and descriptive analysis of the study.
 
-- **[Response Rate Estimation](http://nbviewer.jupyter.org/github/sdaza/reentry-chile/blob/cd1afaf8e0897faf14f84b0784287350669bbf00/reports/reentry_chile_response_rates.ipynb)**
+- **[Response Rate Estimation](http://nbviewer.jupyter.org/github/sdaza/reentry-chile/blob/f654835f33a9bab24f5ae881c6c3ca81bf1fc957/reports/reentry_chile_response_rates.ipynb)**
 - **[Modeling Response](http://nbviewer.jupyter.org/github/sdaza/reentry-chile/blob/1a91da2b7d0e312928c7a1910a6418126cc5de7b/reports/predicting_response_rate.ipynb)**
 - **[First week](http://nbviewer.jupyter.org/github/sdaza/reentry-chile/blob/d4a8e66cd8afc0bea69b895190345d07d28fb6fc/reports/exploring_first_week.ipynb)**
 - **[Slides presentation by Pilar Larroulet, August 2017 (Spanish)](reports/isuc_08_2017.pdf)**
