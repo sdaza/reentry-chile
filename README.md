@@ -4,8 +4,13 @@ The re-entry study is an intensive longitudinal project that follows more than 2
 
 In this repository, we publish preliminary and descriptive analysis of the study.
 
+### Slides
+
+- **[Slides presentation by Pilar Larroulet, August 2017 (Spanish)](reports/isuc_08_2017.pdf)**
+
+### Notebooks
+
 - **[Response Rate Estimation](reports/reentry_chile_response_rates.ipynb)**
 - **[Modeling Response (First Week)](reports/predicting_response_rate.ipynb)**
 - **[Descriptives First week](reports/exploring_first_week.ipynb)**
 - **[Descriptives Two months](reports/exploring_two_months.ipynb)**
-- **[Slides presentation by Pilar Larroulet, August 2017 (Spanish)](reports/isuc_08_2017.pdf)**
