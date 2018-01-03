@@ -7,4 +7,5 @@ In this repository, we publish preliminary and descriptive analysis of the study
 - **[Response Rate Estimation](reports/reentry_chile_response_rates.ipynb)**
 - **[Modeling Response](reports/predicting_response_rate.ipynb)**
 - **[First week](reports/exploring_first_week.ipynb)**
+- **[Two months](reports/exploring_two_months.ipnb)**
 - **[Slides presentation by Pilar Larroulet, August 2017 (Spanish)](reports/isuc_08_2017.pdf)**
