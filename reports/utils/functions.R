@@ -1,6 +1,6 @@
+# computes weighted mean and variance (ML-estimators!)
+# x.wt ... matrix with two columns: cbind(x, wt)
 var.wt = function(x.wt) {
-   # computes weighted mean and variance (ML-estimators!)
-   # x.wt ... matrix with two columns: cbind(x, wt)
 
    x.wt = na.omit(x.wt)
    x = x.wt[, 1]
@@ -12,13 +12,12 @@ var.wt = function(x.wt) {
 }
 
 
-
-rbm.logit <- function(lps, grp, wt = rep(1, length(lps))) 
-{
    # Rubin Benchmark for propensity score logits (Rubin 2001)
    # lps  ... logit of PS
    # grp  ... grouping variable (treatment/assignment) - factor
    # wt   ... weights (typically PS- or PS-strata weights)
+rbm.logit <- function(lps, grp, wt = rep(1, length(lps)))
+{
 
    g <- length(table(grp))
    stat <- unlist(by(cbind(lps, wt), grp, var.wt))  # weighted mean and variance (vector)
@@ -31,16 +30,15 @@ rbm.logit <- function(lps, grp, wt = rep(1, length(lps)))
    return(res)
 }
 
-rbm = function(covar, grp, 
-                    lps = rep(1, length(grp)), 
-                    wt = rep(1, length(grp)), plt = TRUE) 
+# plot of descriptive metrics (Rubin 2001)
+# covar ... data.frame of covariates
+# lps   ... PS-logit
+# grp   ... grouping variable (treatment/assignment) - factor
+# wt    ... weights (typically PS- or PS-strata weights)
+rbm = function(covar, grp,
+                    lps = rep(1, length(grp)),
+                    wt = rep(1, length(grp)), plt = TRUE)
 {
-   # plot of descriptive metrics (Rubin 2001)
-   # covar ... data.frame of covariates
-   # lps   ... PS-logit
-   # grp   ... grouping variable (treatment/assignment) - factor
-   # wt    ... weights (typically PS- or PS-strata weights)
-
    rbm.mat <- apply(covar, 2, rbm.logit, grp, wt)
    B <- rbm.mat[1, ]
    R <-  rbm.mat[2, ]
