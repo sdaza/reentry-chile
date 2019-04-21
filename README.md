@@ -10,8 +10,8 @@ In this repository, we publish preliminary and descriptive analysis of the study
 
 ### Notebooks
 
-- **[Response Rate Estimation](reports/reentry_chile_response_rates.ipynb)**
-- **[Modeling Response (First Week)](reports/predicting_response_rate.ipynb)**
-- **[Descriptives First week](reports/exploring_first_week.ipynb)**
-- **[Descriptives Two months](reports/exploring_two_months.ipynb)**
-- **[Descriptives Six months](reports/exploring_six_months.ipynb)**
+- **[Response Rate Estimation](reports/general/reentry_chile_response_rates.ipynb)**
+- **[Modeling Response (First Week)](reports/general/predicting_response_rate.ipynb)**
+- **[Descriptives First week](reports/general/exploring_first_week.ipynb)**
+- **[Descriptives Two months](reports/general/exploring_two_months.ipynb)**
+- **[Descriptives Six months](reports/general/exploring_six_months.ipynb)**
