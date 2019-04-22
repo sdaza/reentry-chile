@@ -17,7 +17,7 @@ or who were staying with family.
 
 - To study the housing of released prisoners, we distinguish marginal and
  temporary living situations deﬁned as residing in a homeless shelter,
- a sober house or residential program, a rooming house ðusually paid weekly,
+ a sober house or residential program, a rooming house usually paid weekly,
  or a hotel or motel; staying at multiple residences;
  or being homeless on the streets or in a correctional facility
 
