@@ -52,7 +52,74 @@ imp = mice::mice(mdf, predictorMatrix = predM, m = 10, maxit = 30,
 plot(imp)
 densityplot(imp)
 
-# model using imputation using future package
+# model to create wave plots
+plan(multiprocess)
+m0 = brm_multiple(mvbind(money_family, living_with_family, temp_housing, spent_night, work_formal, work_informal,
+                         money_pp, contact_pp) ~
+                  time,
+                  data = imp,
+                  family = bernoulli(),
+                  control = list(adapt_delta=0.90),
+                  chains = 2)
+
+depvars = c('moneyfamily', 'livingwithfamily', 'temphousing',
+  'spentnight', 'workformal', 'workinformal', 'moneypp', 'contactpp')
+
+fitted_values = list()
+newdata = data.frame(time = factor(1:4))
+for (i in depvars) {
+  print(paste0('fitting values for ', i))
+  pp = fitted(m0, newdata = newdata, resp = i,
+              summary = TRUE, robust = TRUE)
+  fitted_values[[i]] = data.table(pp)[, dep := i][, time := 1:4]
+}
+
+fitted_values = rbindlist(fitted_values)
+
+fitted_values[, time := factor(time,
+              levels = c(1:4),
+              labels =c('Primera semana', 'Dos meses', 'Seis meses', 'Doce meses'))]
+
+cnames = c('Dinero familiares', 'Vive con familiares', 'Vivienda temporal', 'Noche en lugar de riesgo',
+           'Trabajo formal', 'Trabajo informal', 'Dinero programas', 'Contacto instituciones')
+
+
+fitted_values[, dep := factor(dep, labels = cnames, levels = depvars)]
+
+depvars_list = list(
+  'family' = cnames[1:2],
+  'housing'  = cnames[3:4],
+  'work'  = cnames[5:6],
+  'public'  = cnames[7:8]
+  )
+
+
+create_plots_outcome = function(depvars, plotname) {
+
+  savepdf(paste0('output/', plotname))
+
+  print(
+  ggplot(fitted_values[dep %in% depvars],
+        aes(x=time, y=Estimate, group=dep, color=dep)) +
+  geom_pointrange(aes(ymin=Q2.5, ymax=Q97.5), position = position_dodge(width=0.2)) +
+  labs(x='\nOla\n', y='Probabilidad\n', caption = "Nota: Intervalos de credibilidad (95%), 50 imputaciones")  +
+  scale_y_continuous(breaks = seq(0, 1, 0.10), limits = c(0,.90)) +
+  scale_color_manual(values=c("#f03b20", "#2c7fb8")) +
+  theme_classic() +
+  theme(legend.position="top", legend.title=element_blank(),
+    plot.caption = element_text(hjust = 0, size = 6, face = "italic"))
+  )
+  dev.off()
+
+}
+
+for (i in seq_along(depvars_list)) {
+  create_plots_outcome(depvars_list[[i]], names(depvars_list[i]))
+  }
+
+
+# predictors model
+
 plan(multiprocess)
 m1 = brm_multiple(mvbind(money_family, living_with_family, temp_housing, spent_night, work_formal, work_informal,
                          money_pp, contact_pp) ~
@@ -63,48 +130,48 @@ m1 = brm_multiple(mvbind(money_family, living_with_family, temp_housing, spent_n
                   control = list(adapt_delta=0.90),
                   chains = 2)
 
-screenreg(m1)
-
-screenreg(m1,  omit.coef = '^temphousing|^workformal|^moneypp')
-screenreg(m1,  omit.coef = '^moneyfamily|^workformal|^moneypp')
-screenreg(m1,  omit.coef = '^moneyfamily|^temphousing|^moneypp')
-screenreg(m1,  omit.coef = '^moneyfamily|^temphousing|^moneypp')
-
-# coefficient values
-setNames(as.list(c(1, 2)), c("foo", "bar"), omit.coef = '^temphousing|^workformal|^moneypp')
-
-coefficients = c('moneyfamily_Intercept', 'temphousing_Intercept', 'workformal_Intercept', 'moneypp_Intercept',
-'moneyfamily_time2', 'moneyfamily_time3', 'moneyfamily_time4', 'moneyfamily_age',
-'moneyfamily_age2', 'moneyfamily_n_children', 'moneyfamily_family_support_conflict',
-'moneyfamily_mental_health', 'moneyfamily_drug_dep_abuse', 'moneyfamily_previous_sentences',
-'temphousing_time2', 'temphousing_time3', 'temphousing_time4', 'temphousing_age', 'temphousing_age2',
-'temphousing_n_children', 'temphousing_family_support_conflict', 'temphousing_mental_health',
-'temphousing_drug_dep_abuse', 'temphousing_previous_sentences',
-'workformal_time2', 'workformal_time3', 'workformal_time4',
-'workformal_age', 'workformal_age2', 'workformal_n_children',
-'workformal_family_support_conflict', 'workformal_mental_health',
-'workformal_drug_dep_abuse', 'workformal_previous_sentences',
-'moneypp_time2', 'moneypp_time3', 'moneypp_time4', 'moneypp_age', 'moneypp_age2',
-'moneypp_n_children', 'moneypp_family_support_conflict', 'moneypp_mental_health',
-'moneypp_drug_dep_abuse', 'moneypp_previous_sentences')
+cmap = list('Intercept' = 'Constante',
+            'time2' = 'Dos meses',
+            'time3' = 'Seis meses',
+            'time4' = 'Doce meses',
+            'age' = 'Edad',
+            'n_children' = 'Número de hijos',
+            'mental_health' = 'Problemas de salud mental',
+            'drup_dep_abuse' = 'Dependencia / abuso drogas',
+            'previous_sentences' = 'Número de condenas previas')
 
 
-coefficients_recode = coefficients
-coefficients[grepl('Intercept', coefficients)]
 
-# let's assume this model is multivariate (several dependent variables)
+dep_regular_exp = c('^moneyfamily_', '^livingwithfamily_', '^temphousing_',
+  '^spentnight_', '^workformal_', '^workinformal_',
+  '^moneypp_', '^contactpp_')
 
-dep = runif(30)
-dep1_var1 = runif(30)
-dep1_var2 = runif(30)
-dep2_var1 = runif(30)
-dep2_var2 = runif(30)
+for (i in seq_along(dep_regular_exp)) {
+  print(paste0('::::: create table number ', i))
+  texreg_objs[[i]] = extract.brms.select_coeff(m1, coeff_pattern = dep_regular_exp[i],
+                                               include.r2 = TRUE)
+}
 
-m = lm(dep ~ dep1_var1 + dep1_var2 + dep2_var1 + dep2_var2 - 1)
-custom.map.coef = list(
-                       dep1_var1 = 'var1',
-                       dep1_var1 = 'var1',
+ndeps = length(dep_regular_exp)
 
-
-screenreg(list(m, m),
-  custom.model.names = c('dep1', 'dep2'))
+texreg(texreg_objs,
+          custom.coef.map = cmap,
+          custom.model.names = cnames,
+          groups = list('Ola (ref = primera semana)' = 2:4),
+          ci.test = FALSE,
+          float.pos = "htp",
+          caption = paste0('Modelo Bayesiano multivariable (',
+                           ndeps, ' variables dependientes)'),
+          booktabs = TRUE,
+          use.packages = FALSE,
+          dcolumn = TRUE,
+          caption.above = TRUE,
+          scalebox = 0.80,
+          # fontsize = 'scriptsize',
+          label = "integracion_social_m1",
+          sideways = TRUE,
+          digits = 2,
+          custom.note = paste0("Intervalos de credibilidad 95\\%. Coeficientes corresponden a un modelo con ", ndeps, " variables dependientes.
+          Efectos aleatorios y correlaciones entre variables dependientes son omitidos."),
+          file = 'output/integracion_social_m1.tex'
+          )
