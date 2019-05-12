@@ -69,7 +69,7 @@ setMethod("extract",
           definition = extract.brms)
 
 
-# selecting coefficients
+# selecting coefficients for multivariate models
 
 extract.brms.select_coeff = function(model, include.r2 = TRUE, include.loo = FALSE,
                                      coeff_pattern = NULL,
