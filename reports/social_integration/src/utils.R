@@ -72,7 +72,8 @@ setMethod("extract",
 # selecting coefficients
 
 extract.brms.select_coeff = function(model, include.r2 = TRUE, include.loo = FALSE,
-                                     coeff_pattern = NULL) {
+                                     coeff_pattern = NULL,
+                                     iteration = NULL) {
     s = summary(model)
 
     # fixed coefficients
@@ -102,6 +103,9 @@ extract.brms.select_coeff = function(model, include.r2 = TRUE, include.loo = FAL
     gof = numeric()
     gof.names = character()
     gof.decimal = logical()
+
+    if (iteration == 1) {
+
     gof = c(gof, s$nobs)
     gof.names = c(gof.names, "Num.\ obs.")
     gof.decimal = c(gof.decimal, FALSE)
@@ -129,6 +133,8 @@ extract.brms.select_coeff = function(model, include.r2 = TRUE, include.loo = FAL
         gof.decimal = c(gof.decimal, TRUE)
     }
 
+    }
+
     tr = texreg::createTexreg(coef.names = coefficient.names,
                               coef = coefficients,
                               ci.low = ci.low,
@@ -152,7 +158,8 @@ create_texreg_multivariate = function(model, dependent_variables_regex,
         print(paste0('::::: create table number ', i))
         texreg_objs[[i]] = extract.brms.select_coeff(model,
                            coeff_pattern = dependent_variables_regex[i],
-                           include.r2 = include.r2, include.loo = include.loo)
+                           include.r2 = include.r2, include.loo = include.lool
+                           iteration = i)
     }
     return(texreg_objs)
 }
