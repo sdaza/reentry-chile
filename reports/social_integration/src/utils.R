@@ -69,10 +69,11 @@ setMethod("extract",
           definition = extract.brms)
 
 
-# selecting coefficients
+# selecting coefficients for multivariate models
 
 extract.brms.select_coeff = function(model, include.r2 = TRUE, include.loo = FALSE,
-                                     coeff_pattern = NULL) {
+                                     coeff_pattern = NULL,
+                                     iteration = NULL) {
     s = summary(model)
 
     # fixed coefficients
@@ -102,6 +103,9 @@ extract.brms.select_coeff = function(model, include.r2 = TRUE, include.loo = FAL
     gof = numeric()
     gof.names = character()
     gof.decimal = logical()
+
+    if (iteration == 1) {
+
     gof = c(gof, s$nobs)
     gof.names = c(gof.names, "Num.\ obs.")
     gof.decimal = c(gof.decimal, FALSE)
@@ -129,6 +133,8 @@ extract.brms.select_coeff = function(model, include.r2 = TRUE, include.loo = FAL
         gof.decimal = c(gof.decimal, TRUE)
     }
 
+    }
+
     tr = texreg::createTexreg(coef.names = coefficient.names,
                               coef = coefficients,
                               ci.low = ci.low,
@@ -145,14 +151,15 @@ create_texreg_multivariate = function(model, dependent_variables_regex,
                                       include.r2 = FALSE,
                                       include.loo = FALSE) {
 
-    check_convergence_mi(model)
+    check_convergence_mi(model, high=1.1)
 
     texreg_objs = list()
     for (i in seq_along(dependent_variables_regex)) {
         print(paste0('::::: create table number ', i))
         texreg_objs[[i]] = extract.brms.select_coeff(model,
                            coeff_pattern = dependent_variables_regex[i],
-                           include.r2 = include.r2, include.loo = include.loo)
+                           include.r2 = include.r2, include.loo = include.loo,
+                           iteration = i)
     }
     return(texreg_objs)
 }
@@ -161,8 +168,8 @@ create_texreg_multivariate = function(model, dependent_variables_regex,
 
 check_convergence_mi = function(model, low=.90, high=1.05) {
     total = sum(model$rhats > high | model$rhats < low)
-    if (total > 0) { error('Convergence problems, please check model and ignore warnings') }
-    else { print('Checking model convergence: no problems, go ahead!') }
+    if (total > 0) { stop('Convergence problems, please check model') }
+    else { print('Checking model convergence: no problems, go ahead and ignore warnings!') }
 }
 
 # end

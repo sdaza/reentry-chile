@@ -4,6 +4,7 @@
 # author: sebastian daza
 ############################
 
+# devtools::install_github("leifeld/texreg")
 library(data.table)
 library(brms)
 library(mice)
@@ -11,7 +12,6 @@ library(miceadds)
 library(micemd)
 library(texreg)
 library(future)
-library(countimp)
 library(stringr)
 
 source('src/utils.R')
@@ -136,7 +136,8 @@ plan(multiprocess)
 m1 = brm_multiple(mvbind(money_family, living_with_family, temp_housing, spent_night, work_formal, work_informal,
                          money_pp, contact_pp) ~
                   time + age + nchildren + only_primary + previous_partner +
-                  self_efficacy + desire_change + any_previous_work + family_conflict +
+                  self_efficacy + desire_change + any_previous_work +
+                  #  family_conflict +
                   mental_health + drug_depabuse + previous_sentences + (1|p|reg_folio),
                   data = imp,
                   family = bernoulli(),
@@ -158,7 +159,7 @@ cmap = list('Intercept' = 'Constante',
             'previous_partner' = 'Pareja antes de la cárcel',
             'any_previous_work' = 'Trabajo antes de la cárcel',
             'mental_health' = 'Problemas de salud mental',
-            'self_efficay' = 'Autoeficacia',
+            'self_efficacy' = 'Autoeficacia',
             'desire_change' = 'Disposición al cambio',
             'family_conflict' = 'Escala conflicto familiar',
             'drup_dep_abuse' = 'Dependencia / abuso drogas',
@@ -172,7 +173,7 @@ dep_regular_exp = c('^moneyfamily_', '^livingwithfamily_', '^temphousing_',
   '^moneypp_', '^contactpp_')
 
 list_texreg = create_texreg_multivariate(m1, dep_regular_exp,
-              include.r2=TRUE)
+              include.r2 = TRUE)
 
 ndeps = length(dep_regular_exp)
 
@@ -204,6 +205,9 @@ tab = str_replace(tab, 'Num\\. obs\\.', 'Número observaciones')
 tab = str_replace_all(tab,
   '\\s+[0-9]+\\s+&\\s+[0-9]+\\s+&\\s+[0-9]+\\s+&\\s+[0-9]+\\s+&\\s+[0-9]+\\s+&\\s+[0-9]+\\s+&\\s+[0-9]+\\s+\\\\',
                       '   &   &   &   &   &   &   \\\\')
+tab = str_replace_all(tab,
+  '\\s+[0-9]+\\.[0-9]+\\s+&\\s+[0-9]+\\.[0-9]+\\s+&\\s+[0-9]+\\.[0-9]+\\s+&\\s+[0-9]+\\.[0-9]+\\s+&\\s+[0-9]+\\.[0-9]+\\s+&\\s+[0-9]+\\.[0-9]+\\s+&\\s+[0-9]+\\.[0-9]+\\s+\\\\',
+                      '   &   &   &   &   &   &   \\\\')
 top = "\\\\toprule
 \\\\addlinespace
 & \\\\multicolumn{2}{c}{Familia} &  \\\\multicolumn{2}{c}{Precariedad Residencial} &
@@ -221,6 +225,3 @@ top = "\\\\toprule
 tab = str_replace(tab, '\\\\toprule\\n.+\\n\\\\midrule', top)
 cat(tab,  file = 'output/integracion_social_m1.tex')
 
-
-
-cat(top)
