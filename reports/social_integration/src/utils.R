@@ -158,7 +158,7 @@ create_texreg_multivariate = function(model, dependent_variables_regex,
         print(paste0('::::: create table number ', i))
         texreg_objs[[i]] = extract.brms.select_coeff(model,
                            coeff_pattern = dependent_variables_regex[i],
-                           include.r2 = include.r2, include.loo = include.lool
+                           include.r2 = include.r2, include.loo = include.loo,
                            iteration = i)
     }
     return(texreg_objs)
@@ -168,8 +168,8 @@ create_texreg_multivariate = function(model, dependent_variables_regex,
 
 check_convergence_mi = function(model, low=.90, high=1.05) {
     total = sum(model$rhats > high | model$rhats < low)
-    if (total > 0) { error('Convergence problems, please check model and ignore warnings') }
-    else { print('Checking model convergence: no problems, go ahead!') }
+    if (total > 0) { stop('Convergence problems, please check model') }
+    else { print('Checking model convergence: no problems, go ahead and ignore warnings!') }
 }
 
 # end
