@@ -7,7 +7,6 @@
 library(data.table)
 
 # auxiliary functions
-
 any_values = function(x, values) as.numeric(any(x %in% values, na.rm = TRUE))
 amount_higher_zero = function(x, values) as.numeric(any(x > values))
 reverse = function(x) (max(x, na.rm = TRUE) + 1) - x
@@ -388,12 +387,28 @@ setnames(bs, names(bs), tolower(names(bs)))
 bs = bs[reg_ola == 0 & reg_muestra == 1]
 bs = bs[, lapply(.SD, function(x) ifelse(x < 0, NA, x)), .SDcols = names(bs)]
 
+# add  latent classes
+lclass  = fread('data/Folio_clase.csv')
+nvars = c('reg_folio', 'prob1', 'prob2', 'prob3', 'probmax', 'class')
+setnames(lclass, names(lclass), nvars)
+lclass = lclass[, .(reg_folio, class)]
+
+setkey(lclass, reg_folio)
+setkey(bs, reg_folio)
+bs = lclass[bs]
+table(bs$class)
+
 # age
 setnames(bs, 'hdv_1', 'age')
 
+# partner before prison
+bs[, previous_partner := ifelse(par_6 == 1 | par_4==1 | par_4==2, 1, 0)]
+bs[is.na(previous_partner) & par_4 == 0, previous_partner := 0]
+table(bs$previous_partner)
+
 # primary school dropout
-bs[, primary_dropout := ifelse(hdv_7 < 8, 1, 0)]
-table(bs$primary_dropout)
+bs[, only_primary := ifelse(hdv_7 <= 8, 1, 0)]
+table(bs$only_primary)
 
 bs[hdv_7 == 0, edu := 'none']
 bs[hdv_7 %in% 1:7, edu := 'primary incomplete']
@@ -403,6 +418,30 @@ bs[hdv_7 == 12, edu := 'secondary complete']
 bs[hdv_7 > 12, edu := 'some terciary']
 
 table(bs$edu)
+
+# self efficacy
+self_efficacy_vars = paste0('car_1_', 10:16)
+
+bs[, self_efficacy_vars[c(2, 5)] := lapply(.SD, reverse),
+   .SDcols = self_efficacy_vars[c(2, 5)]]
+
+bs[, self_efficacy := scale(apply(.SD, 1, mean, na.rm=TRUE)),
+    .SDcols = self_efficacy_vars]
+
+# desire for help
+help_vars = paste0('spg_8_', 1:4)
+
+bs[, c(help_vars) := lapply(.SD, reverse),
+   .SDcols = help_vars]
+
+bs[, desire_change := scale(apply(.SD, 1, mean, na.rm=TRUE)),
+    .SDcols = help_vars]
+
+# work before prison
+bs[, any_previous_work := apply(.SD, 1, any_values, 1),
+    .SDcols = c('eaf_6', 'eaf_43')]
+
+table(bs$any_previous_work)
 
 # type of crime
 table(bs$del_10)
@@ -425,8 +464,8 @@ bs[, mental_health := scale(apply(.SD, 1, mean, na.rm = TRUE)),
     .SDcols = names(bs) %like% '^sal_31']
 
 # hijos
-setnames(bs, 'hij_1', 'n_children')
-bs[, any_children := ifelse(n_children > 0, 1, 0)]
+setnames(bs, 'hij_1', 'nchildren')
+bs[, any_children := ifelse(nchildren > 0, 1, 0)]
 
 # early crime
 bs[, early_crime := ifelse(del_15 < 15, 1, 0)]
@@ -439,7 +478,6 @@ bs[, sentence_length := apply(.SD, 1, sum, na.rm = TRUE),
     .SDcols = paste0('del_11_', 1:3)]
 
 # drug abuse and dependence
-
 # most frequent drug
 dep = paste0('dro_6_', c(1, 2, 4, 5, 6, 7))
 abuse = paste0('dro_6_', c(8, 9, 10, 11))
@@ -470,7 +508,7 @@ bs[, drug_dep := apply(.SD, 1, any_values, 3:6),
 bs[, drug_abuse := apply(.SD, 1, any_values, 1:4),
     .SDcols = names(bs) %like% '^abuse_[1-2]$']
 
-bs[, drug_dep_abuse := apply(.SD, 1, any_values, 1),
+bs[, drug_depabuse := apply(.SD, 1, any_values, 1),
     .SDcols = c('drug_dep', 'drug_abuse')]
 
 # family support and conflict
@@ -480,17 +518,22 @@ fconflict = paste0('sfa_8_', 5:7)
 bs[, c(fsupport) := lapply(.SD, reverse),
    .SDcols = c(fsupport)]
 
-bs[, family_support_conflict := scale(apply(.SD, 1, mean, na.rm = TRUE)),
-    .SDcols = c(fsupport, fconflict)]
+bs[, c(fconflict) := lapply(.SD, reverse),
+   .SDcols = c(fconflict)]
+
+bs[, family_conflict := scale(apply(.SD, 1, mean, na.rm = TRUE)),
+    .SDcols = c(fconflict)]
 
 # select columns
-bs = bs[, .(reg_folio, age, edu, primary_dropout, n_children, any_children, crime, early_crime,
-    previous_sentences, mental_health, drug_dep_abuse,
-    sentence_length, family_support_conflict
+bs = bs[, .(reg_folio, class, age, edu, only_primary, any_previous_work,
+    nchildren, any_children, crime, early_crime,
+    self_efficacy, desire_change, previous_partner,
+    previous_sentences, mental_health, drug_depabuse,
+    sentence_length, family_conflict
     )]
 
 # center variables
-cvars = c('age', 'sentence_length', 'n_children', 'previous_sentences')
+cvars = c('age', 'sentence_length', 'nchildren', 'previous_sentences')
 bs[, paste0('c_', cvars) := lapply(.SD, scale, scale=FALSE), .SDcols = cvars]
 
 # index to expand database

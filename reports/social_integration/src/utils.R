@@ -140,8 +140,29 @@ extract.brms.select_coeff = function(model, include.r2 = TRUE, include.loo = FAL
     return(tr)
 }
 
-setMethod("extract",
-          signature = className("brmsfit_multiple", "brms"),
-          definition = extract.brms.select_coeff)
+# auxiliary function to create texreg objects
+create_texreg_multivariate = function(model, dependent_variables_regex,
+                                      include.r2 = FALSE,
+                                      include.loo = FALSE) {
+
+    check_convergence_mi(model)
+
+    texreg_objs = list()
+    for (i in seq_along(dependent_variables_regex)) {
+        print(paste0('::::: create table number ', i))
+        texreg_objs[[i]] = extract.brms.select_coeff(model,
+                           coeff_pattern = dependent_variables_regex[i],
+                           include.r2 = include.r2, include.loo = include.loo)
+    }
+    return(texreg_objs)
+}
+
+# check convergence multiple imputation
+
+check_convergence_mi = function(model, low=.90, high=1.05) {
+    total = sum(model$rhats > high | model$rhats < low)
+    if (total > 0) { error('Convergence problems, please check model and ignore warnings') }
+    else { print('Checking model convergence: no problems, go ahead!') }
+}
 
 # end

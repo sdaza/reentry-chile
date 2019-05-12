@@ -12,6 +12,7 @@ library(micemd)
 library(texreg)
 library(future)
 library(countimp)
+library(stringr)
 
 source('src/utils.R')
 
@@ -19,30 +20,44 @@ source('src/utils.R')
 df = readRDS('output/clean_data.rd')
 names(df)
 
-fvars = c('edu', 'crime', 'time')
+fvars = c('edu', 'crime', 'time', 'class')
 df[, c(fvars) := lapply(.SD, factor), .SDcols = fvars]
+df[, class := factor(class, labels = c('Clase 1', 'Clase 2', 'Clas 3'))]
 
 # imputation
 mdf = df[, .(reg_folio, time, money_family, living_with_family,
               temp_housing, spent_night, work_informal, work_formal,
-              contact_pp, money_pp, age, edu, n_children, crime,
-              previous_sentences, mental_health, drug_dep_abuse,
-              sentence_length, family_support_conflict)]
+              contact_pp, money_pp, age, only_primary,
+              nchildren, previous_partner,
+              crime, any_previous_work,
+              self_efficacy, desire_change,
+              previous_sentences, mental_health, drug_depabuse,
+              sentence_length, family_conflict)]
 
-mdf[, age2 := age^2]
+
+# explore correlations
+cor(mdf[, .SD, .SDcols = sapply(mdf, is.numeric)], )
+
+cor(mdf[, .(self_efficacy, desire_change,
+  family_conflict, mental_health)], use = 'complete.obs')
 
 predM = mice::make.predictorMatrix(data = mdf)
 predM[, "reg_folio"] = -2
 impMethod = mice::make.method(data=mdf)
-l2vars = c('previous_sentences', 'family_support_conflict')
+l2vars = c('previous_sentences', 'family_conflict', 'self_efficacy')
 predM[l2vars, 'time'] = 0
 impMethod[l2vars] <- '2lonly.function'
-imputationFunction <- list('previous_sentences' = 'pmm' , 'family_support_conflict' = 'pmm')
-cluster_var <- list('previous_sentences' = 'reg_folio', 'family_support_conflict' = 'reg_folio')
+imputationFunction <- list('previous_sentences' = 'pmm' ,
+                           'family_conflict' = 'pmm',
+                           'self_efficacy' = 'pmm')
+cluster_var <- list('previous_sentences' = 'reg_folio',
+                    'family_conflict' = 'reg_folio',
+                    'self_efficacy' = 'reg_folio')
 
 #impMethod
+number_imputations = 10
 
-imp = mice::mice(mdf, predictorMatrix = predM, m = 10, maxit = 30,
+imp = mice::mice(mdf, predictorMatrix = predM, m = number_imputations, maxit = 30,
                method = impMethod,
                imputationFunction = imputationFunction,
                cluster_var = cluster_var,
@@ -83,7 +98,6 @@ fitted_values[, time := factor(time,
 cnames = c('Dinero familiares', 'Vive con familiares', 'Vivienda temporal', 'Noche en lugar de riesgo',
            'Trabajo formal', 'Trabajo informal', 'Dinero programas', 'Contacto instituciones')
 
-
 fitted_values[, dep := factor(dep, labels = cnames, levels = depvars)]
 
 depvars_list = list(
@@ -92,7 +106,6 @@ depvars_list = list(
   'work'  = cnames[5:6],
   'public'  = cnames[7:8]
   )
-
 
 create_plots_outcome = function(depvars, plotname) {
 
@@ -103,7 +116,7 @@ create_plots_outcome = function(depvars, plotname) {
         aes(x=time, y=Estimate, group=dep, color=dep)) +
   geom_pointrange(aes(ymin=Q2.5, ymax=Q97.5), position = position_dodge(width=0.2)) +
   labs(x='\nOla\n', y='Probabilidad\n', caption = "Nota: Intervalos de credibilidad (95%), 50 imputaciones")  +
-  scale_y_continuous(breaks = seq(0, 1, 0.10), limits = c(0,.90)) +
+  scale_y_continuous(breaks = seq(0, 1, 0.10), limits = c(0,.80)) +
   scale_color_manual(values=c("#f03b20", "#2c7fb8")) +
   theme_classic() +
   theme(legend.position="top", legend.title=element_blank(),
@@ -115,46 +128,55 @@ create_plots_outcome = function(depvars, plotname) {
 
 for (i in seq_along(depvars_list)) {
   create_plots_outcome(depvars_list[[i]], names(depvars_list[i]))
-  }
+}
 
 
-# predictors model
-
+# descriptive model
 plan(multiprocess)
 m1 = brm_multiple(mvbind(money_family, living_with_family, temp_housing, spent_night, work_formal, work_informal,
                          money_pp, contact_pp) ~
-                  time + age + n_children +
-                  mental_health + drug_dep_abuse + previous_sentences + (1|p|reg_folio),
+                  time + age + nchildren + only_primary + previous_partner +
+                  self_efficacy + desire_change + any_previous_work + family_conflict +
+                  mental_health + drug_depabuse + previous_sentences + (1|p|reg_folio),
                   data = imp,
                   family = bernoulli(),
                   control = list(adapt_delta=0.90),
-                  chains = 2)
+                  chains = 1)
+
+check_convergence_mi(m1)
+
+screenreg(m1, omit.coef = paste0(depvars[-1], collapse='|'),
+  include.r2=TRUE)
 
 cmap = list('Intercept' = 'Constante',
             'time2' = 'Dos meses',
             'time3' = 'Seis meses',
             'time4' = 'Doce meses',
             'age' = 'Edad',
-            'n_children' = 'Número de hijos',
+            'only_primary' = 'Educación básica o menos',
+            'nchildren' = 'Número de hijos',
+            'previous_partner' = 'Pareja antes de la cárcel',
+            'any_previous_work' = 'Trabajo antes de la cárcel',
             'mental_health' = 'Problemas de salud mental',
+            'self_efficay' = 'Autoeficacia',
+            'desire_change' = 'Disposición al cambio',
+            'family_conflict' = 'Escala conflicto familiar',
             'drup_dep_abuse' = 'Dependencia / abuso drogas',
+            'class' = 'Perfil',
+            'crime' = 'Delito condena',
+            'sentence_length' = 'Tiempo condena',
             'previous_sentences' = 'Número de condenas previas')
-
-
 
 dep_regular_exp = c('^moneyfamily_', '^livingwithfamily_', '^temphousing_',
   '^spentnight_', '^workformal_', '^workinformal_',
   '^moneypp_', '^contactpp_')
 
-for (i in seq_along(dep_regular_exp)) {
-  print(paste0('::::: create table number ', i))
-  texreg_objs[[i]] = extract.brms.select_coeff(m1, coeff_pattern = dep_regular_exp[i],
-                                               include.r2 = TRUE)
-}
+list_texreg = create_texreg_multivariate(m1, dep_regular_exp,
+              include.r2=TRUE)
 
 ndeps = length(dep_regular_exp)
 
-texreg(texreg_objs,
+tab = texreg(list_texreg,
           custom.coef.map = cmap,
           custom.model.names = cnames,
           groups = list('Ola (ref = primera semana)' = 2:4),
@@ -166,12 +188,39 @@ texreg(texreg_objs,
           use.packages = FALSE,
           dcolumn = TRUE,
           caption.above = TRUE,
-          scalebox = 0.80,
+          scalebox = 0.70,
           # fontsize = 'scriptsize',
           label = "integracion_social_m1",
           sideways = TRUE,
           digits = 2,
           custom.note = paste0("Intervalos de credibilidad 95\\%. Coeficientes corresponden a un modelo con ", ndeps, " variables dependientes.
           Efectos aleatorios y correlaciones entre variables dependientes son omitidos."),
-          file = 'output/integracion_social_m1.tex'
+          # file = 'output/integracion_social_m1.tex'
           )
+
+# clean up table
+tab = str_replace(tab, 'Num\\. obs\\.  reg\\\\_folio', 'Número mujeres')
+tab = str_replace(tab, 'Num\\. obs\\.', 'Número observaciones')
+tab = str_replace_all(tab,
+  '\\s+[0-9]+\\s+&\\s+[0-9]+\\s+&\\s+[0-9]+\\s+&\\s+[0-9]+\\s+&\\s+[0-9]+\\s+&\\s+[0-9]+\\s+&\\s+[0-9]+\\s+\\\\',
+                      '   &   &   &   &   &   &   \\\\')
+top = "\\\\toprule
+\\\\addlinespace
+& \\\\multicolumn{2}{c}{Familia} &  \\\\multicolumn{2}{c}{Precariedad Residencial} &
+\\\\multicolumn{2}{c}{Trabajo} &
+\\\\multicolumn{2}{c}{Asistencia Pública} \\\\\\\\
+\\\\addlinespace
+\\\\addlinespace
+& \\\\multicolumn{1}{c}{Dinero familiares} & \\\\multicolumn{1}{c}{Vive con familiares} & \\\\multicolumn{1}{c}{Vivienda temporal} &
+\\\\multicolumn{1}{c}{Noche en lugar de riesgo} & \\\\multicolumn{1}{c}{Trabajo formal} &
+\\\\multicolumn{1}{c}{Trabajo informal} & \\\\multicolumn{1}{c}{Dinero programas} & \\\\multicolumn{1}{c}{Contacto instituciones} \\\\\\\\
+\\\\addlinespace
+\\\\addlinespace
+\\\\midrule"
+
+tab = str_replace(tab, '\\\\toprule\\n.+\\n\\\\midrule', top)
+cat(tab,  file = 'output/integracion_social_m1.tex')
+
+
+
+cat(top)
