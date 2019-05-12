@@ -5,4 +5,4 @@
 ############################
 
 
-source('social_integration/src/01_load_data.R')
+source('src/01_load_data.R')
