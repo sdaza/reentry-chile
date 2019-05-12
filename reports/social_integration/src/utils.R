@@ -1,6 +1,7 @@
 # texreg function for brms extraction
 library(texreg)
 
+# general brms extract method
 extract.brms = function(model, include.r2 = TRUE, include.loo = FALSE, ...) {
     s = summary(model)
     # fixed coefficients
@@ -69,8 +70,7 @@ setMethod("extract",
           definition = extract.brms)
 
 
-# selecting coefficients for multivariate models
-
+# extract function that selects coefficients for multivariate models
 extract.brms.select_coeff = function(model, include.r2 = TRUE, include.loo = FALSE,
                                      coeff_pattern = NULL,
                                      iteration = NULL) {
@@ -106,32 +106,32 @@ extract.brms.select_coeff = function(model, include.r2 = TRUE, include.loo = FAL
 
     if (iteration == 1) {
 
-    gof = c(gof, s$nobs)
-    gof.names = c(gof.names, "Num.\ obs.")
-    gof.decimal = c(gof.decimal, FALSE)
+        gof = c(gof, s$nobs)
+        gof.names = c(gof.names, "Num.\ obs.")
+        gof.decimal = c(gof.decimal, FALSE)
 
-    if ('ngrps' %in% names(s)) {
-        for (i in seq_along(s$ngrps)) {
-            gof = c(gof, s$ngrps[[i]])
-            gof.names = c(gof.names, paste('Num.\ obs. ',
-            stringr::str_replace_all(names(s$ngrps[i]), stringr::fixed('_'), '\\_')))
+        if ('ngrps' %in% names(s)) {
+            for (i in seq_along(s$ngrps)) {
+                gof = c(gof, s$ngrps[[i]])
+                gof.names = c(gof.names, paste('Num.\ obs. ',
+                stringr::str_replace_all(names(s$ngrps[i]), stringr::fixed('_'), '\\_')))
+                gof.decimal = c(gof.decimal, FALSE)
+            }
+        }
+
+        if (include.loo == TRUE) {
+            loo = loo::loo(model, reloo=TRUE)
+            gof = c(gof, loo$estimates[3,1])
+            gof.names = c(gof.names, "LOO Information Criterion")
             gof.decimal = c(gof.decimal, FALSE)
         }
-    }
 
-    if (include.loo == TRUE) {
-        loo = loo::loo(model, reloo=TRUE)
-        gof = c(gof, loo$estimates[3,1])
-        gof.names = c(gof.names, "LOO Information Criterion")
-        gof.decimal = c(gof.decimal, FALSE)
-    }
-
-    if (include.r2 == TRUE) {
-        r2 = brms::bayes_R2(model)
-        gof = c(gof, round(r2[1, 1], 2))
-        gof.names = c(gof.names, "Bayes $R^2$")
-        gof.decimal = c(gof.decimal, TRUE)
-    }
+        if (include.r2 == TRUE) {
+            r2 = brms::bayes_R2(model)
+            gof = c(gof, round(r2[1, 1], 2))
+            gof.names = c(gof.names, "Bayes $R^2$")
+            gof.decimal = c(gof.decimal, TRUE)
+        }
 
     }
 
@@ -151,24 +151,23 @@ create_texreg_multivariate = function(model, dependent_variables_regex,
                                       include.r2 = FALSE,
                                       include.loo = FALSE) {
 
-    check_convergence_mi(model, high=1.1)
-
+    check_convergence_mi(model, high = 1.1)
     texreg_objs = list()
     for (i in seq_along(dependent_variables_regex)) {
         print(paste0('::::: create table number ', i))
         texreg_objs[[i]] = extract.brms.select_coeff(model,
                            coeff_pattern = dependent_variables_regex[i],
-                           include.r2 = include.r2, include.loo = include.loo,
+                           include.r2 = include.r2,
+                           include.loo = include.loo,
                            iteration = i)
     }
     return(texreg_objs)
 }
 
 # check convergence multiple imputation
-
 check_convergence_mi = function(model, low=.90, high=1.05) {
     total = sum(model$rhats > high | model$rhats < low)
-    if (total > 0) { stop('Convergence problems, please check model') }
+    if (total > 0) { stop('Convergence problems, please check model!') }
     else { print('Checking model convergence: no problems, go ahead and ignore warnings!') }
 }
 
