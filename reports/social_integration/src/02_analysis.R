@@ -55,7 +55,7 @@ cluster_var <- list('previous_sentences' = 'reg_folio',
                     'self_efficacy' = 'reg_folio')
 
 #impMethod
-number_imputations = 10
+number_imputations = 50
 
 imp = mice::mice(mdf, predictorMatrix = predM, m = number_imputations, maxit = 30,
                method = impMethod,
@@ -76,6 +76,8 @@ m0 = brm_multiple(mvbind(money_family, living_with_family, temp_housing, spent_n
                   family = bernoulli(),
                   control = list(adapt_delta=0.90),
                   chains = 2)
+
+check_convergence_mi(m0)
 
 depvars = c('moneyfamily', 'livingwithfamily', 'temphousing',
   'spentnight', 'workformal', 'workinformal', 'moneypp', 'contactpp')
@@ -141,7 +143,7 @@ m1 = brm_multiple(mvbind(money_family, living_with_family, temp_housing, spent_n
                   mental_health + drug_depabuse + previous_sentences + (1|p|reg_folio),
                   data = imp,
                   family = bernoulli(),
-                  control = list(adapt_delta=0.90),
+                  control = list(adapt_delta=0.95),
                   chains = 1)
 
 check_convergence_mi(m1)
@@ -181,7 +183,7 @@ tab = texreg(list_texreg,
           custom.coef.map = cmap,
           custom.model.names = cnames,
           groups = list('Ola (ref = primera semana)' = 2:4),
-          ci.test = FALSE,
+          ci.test = 0,  #NULL
           float.pos = "htp",
           caption = paste0('Modelo Bayesiano multivariable (',
                            ndeps, ' variables dependientes)'),
@@ -195,19 +197,18 @@ tab = texreg(list_texreg,
           sideways = TRUE,
           digits = 2,
           custom.note = paste0("Intervalos de credibilidad 95\\%. Coeficientes corresponden a un modelo con ", ndeps, " variables dependientes.
-          Efectos aleatorios y correlaciones entre variables dependientes son omitidos."),
-          # file = 'output/integracion_social_m1.tex'
+          Efectos aleatorios y correlaciones entre variables dependientes son omitidos.")
           )
 
 # clean up table
 tab = str_replace(tab, 'Num\\. obs\\.  reg\\\\_folio', 'Número mujeres')
 tab = str_replace(tab, 'Num\\. obs\\.', 'Número observaciones')
-tab = str_replace_all(tab,
-  '\\s+[0-9]+\\s+&\\s+[0-9]+\\s+&\\s+[0-9]+\\s+&\\s+[0-9]+\\s+&\\s+[0-9]+\\s+&\\s+[0-9]+\\s+&\\s+[0-9]+\\s+\\\\',
-                      '   &   &   &   &   &   &   \\\\')
-tab = str_replace_all(tab,
-  '\\s+[0-9]+\\.[0-9]+\\s+&\\s+[0-9]+\\.[0-9]+\\s+&\\s+[0-9]+\\.[0-9]+\\s+&\\s+[0-9]+\\.[0-9]+\\s+&\\s+[0-9]+\\.[0-9]+\\s+&\\s+[0-9]+\\.[0-9]+\\s+&\\s+[0-9]+\\.[0-9]+\\s+\\\\',
-                      '   &   &   &   &   &   &   \\\\')
+# tab = str_replace_all(tab,
+#   '\\s+[0-9]+\\s+&\\s+[0-9]+\\s+&\\s+[0-9]+\\s+&\\s+[0-9]+\\s+&\\s+[0-9]+\\s+&\\s+[0-9]+\\s+&\\s+[0-9]+\\s+\\\\',
+#                       '   &   &   &   &   &   &   \\\\')
+# tab = str_replace_all(tab,
+#   '\\s+[0-9]+\\.[0-9]+\\s+&\\s+[0-9]+\\.[0-9]+\\s+&\\s+[0-9]+\\.[0-9]+\\s+&\\s+[0-9]+\\.[0-9]+\\s+&\\s+[0-9]+\\.[0-9]+\\s+&\\s+[0-9]+\\.[0-9]+\\s+&\\s+[0-9]+\\.[0-9]+\\s+\\\\',
+#                       '   &   &   &   &   &   &   \\\\')
 top = "\\\\toprule
 \\\\addlinespace
 & \\\\multicolumn{2}{c}{Familia} &  \\\\multicolumn{2}{c}{Precariedad Residencial} &
