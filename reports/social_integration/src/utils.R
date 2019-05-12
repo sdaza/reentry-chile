@@ -151,7 +151,7 @@ create_texreg_multivariate = function(model, dependent_variables_regex,
                                       include.r2 = FALSE,
                                       include.loo = FALSE) {
 
-    check_convergence_mi(model)
+    check_convergence_mi(model, high=1.1)
 
     texreg_objs = list()
     for (i in seq_along(dependent_variables_regex)) {
