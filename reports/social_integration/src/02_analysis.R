@@ -36,7 +36,7 @@ mdf = df[, .(reg_folio, time, money_family, living_with_family,
 
 
 # explore correlations
-cor(mdf[, .SD, .SDcols = sapply(mdf, is.numeric)], )
+cor(mdf[, .SD, .SDcols = sapply(mdf, is.numeric)], use = 'complete.obs')
 
 cor(mdf[, .(self_efficacy, desire_change,
   family_conflict, mental_health)], use = 'complete.obs')
@@ -75,7 +75,7 @@ m0 = brm_multiple(mvbind(money_family, living_with_family, temp_housing, spent_n
                   data = imp,
                   family = bernoulli(),
                   control = list(adapt_delta=0.90),
-                  chains = 2)
+                  chains = 1)
 
 check_convergence_mi(m0)
 
@@ -131,7 +131,6 @@ create_plots_outcome = function(depvars, plotname) {
 for (i in seq_along(depvars_list)) {
   create_plots_outcome(depvars_list[[i]], names(depvars_list[i]))
 }
-
 
 # descriptive model
 plan(multiprocess)
@@ -203,12 +202,6 @@ tab = texreg(list_texreg,
 # clean up table
 tab = str_replace(tab, 'Num\\. obs\\.  reg\\\\_folio', 'Número mujeres')
 tab = str_replace(tab, 'Num\\. obs\\.', 'Número observaciones')
-# tab = str_replace_all(tab,
-#   '\\s+[0-9]+\\s+&\\s+[0-9]+\\s+&\\s+[0-9]+\\s+&\\s+[0-9]+\\s+&\\s+[0-9]+\\s+&\\s+[0-9]+\\s+&\\s+[0-9]+\\s+\\\\',
-#                       '   &   &   &   &   &   &   \\\\')
-# tab = str_replace_all(tab,
-#   '\\s+[0-9]+\\.[0-9]+\\s+&\\s+[0-9]+\\.[0-9]+\\s+&\\s+[0-9]+\\.[0-9]+\\s+&\\s+[0-9]+\\.[0-9]+\\s+&\\s+[0-9]+\\.[0-9]+\\s+&\\s+[0-9]+\\.[0-9]+\\s+&\\s+[0-9]+\\.[0-9]+\\s+\\\\',
-#                       '   &   &   &   &   &   &   \\\\')
 top = "\\\\toprule
 \\\\addlinespace
 & \\\\multicolumn{2}{c}{Familia} &  \\\\multicolumn{2}{c}{Precariedad Residencial} &
@@ -225,4 +218,6 @@ top = "\\\\toprule
 
 tab = str_replace(tab, '\\\\toprule\\n.+\\n\\\\midrule', top)
 cat(tab,  file = 'output/integracion_social_m1.tex')
+
+# model with classes and some demographic controls
 

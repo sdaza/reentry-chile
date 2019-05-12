@@ -148,10 +148,12 @@ extract.brms.select_coeff = function(model, include.r2 = TRUE, include.loo = FAL
 
 # auxiliary function to create texreg objects
 create_texreg_multivariate = function(model, dependent_variables_regex,
+                                      rhat_min = 0.90,
+                                      rhat_max = 1.05,
                                       include.r2 = FALSE,
                                       include.loo = FALSE) {
 
-    check_convergence_mi(model, high = 1.1)
+    check_convergence_mi(model, low = rhat_min, high = rhat_max)
     texreg_objs = list()
     for (i in seq_along(dependent_variables_regex)) {
         print(paste0('::::: create table number ', i))
